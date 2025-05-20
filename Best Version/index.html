@@ -718,7 +718,7 @@
           border = "#333333";
           timeInputColorScheme = "light"; // Suggest light controls for time input on black theme
         } else if (color.getBrightness() > 245) {
-          // Very light
+          // Very light          // For pure white theme, ensure all text elements are pure black
           bgStart = "#ffffff";
           bgEnd = "#f8f9fa";
           accent = "#000000"; // Pure black accent for white theme
@@ -730,6 +730,7 @@
           border = "#000000"; // Black border
           textBase = "#000000"; // Force black text for white theme
           textMuted = "#000000"; // Force black text for white theme
+          textOnAccent = "#ffffff"; // White text on black accent
           timeInputColorScheme = "dark"; // Suggest dark controls for light theme
         } else {
           // Standard calculation
@@ -759,11 +760,19 @@
             : tc(inputBg).darken(10).toRgbString();
           border = inputBorder;
           timeInputColorScheme = isDark ? "light" : "dark"; // Match scheme to theme brightness
-        }
+        } // Ensure pure black text for white theme, otherwise use calculated values
         const textBase =
-          isDark || color.getBrightness() < 128 ? "#e2e8f0" : "#000000"; // Pure black text for white theme
+          color.getBrightness() > 245
+            ? "#000000" // Pure black for white theme
+            : isDark || color.getBrightness() < 128
+            ? "#e2e8f0"
+            : "#333333";
         const textMuted =
-          isDark || color.getBrightness() < 128 ? "#94a3b8" : "#000000"; // Force black text in white theme
+          color.getBrightness() > 245
+            ? "#000000" // Pure black for white theme
+            : isDark || color.getBrightness() < 128
+            ? "#94a3b8"
+            : "#666666";
         const scrollbarThumb = textMuted;
         const scrollbarThumbHover = tc(scrollbarThumb).isDark()
           ? tc(scrollbarThumb).lighten(10).toRgbString()
@@ -1482,7 +1491,8 @@
                           aria-label="Import tasks"
                           title="Import tasks"
                         >
-                          <ion-icon name="upload-outline"></ion-icon>
+                          {" "}
+                          <ion-icon name="cloud-download-outline"></ion-icon>
                           <span>Import</span>
                         </button>
                         <input
