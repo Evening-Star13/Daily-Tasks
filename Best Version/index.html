@@ -50,6 +50,21 @@
         --color-priority-medium: #f97316;
         --color-priority-low: #22c55e;
         /* Removed themed category colors from variables */
+
+        /* Light/Dark mode variables */
+        --color-bg-light: #ffffff;
+        --color-text-light: #1f2937;
+        --color-subtle-bg-light: #f3f4f6;
+        --color-subtle-bg-hover-light: #f9fafb;
+        --color-border-light: #e5e7eb;
+        --color-text-muted-light: #6b7280;
+
+        --color-bg-dark: #1f2937;
+        --color-text-dark: #f9fafb;
+        --color-subtle-bg-dark: #374151;
+        --color-subtle-bg-hover-dark: #4b5563;
+        --color-border-dark: #4b5563;
+        --color-text-muted-dark: #9ca3af;
       }
 
       /* Apply base styles using CSS Variables */
@@ -551,6 +566,80 @@
         font-size: 0.75rem; /* text-xs */
         cursor: pointer;
       }
+
+      /* Light/Dark mode variables */
+      :root {
+        --color-bg-light: #ffffff;
+        --color-text-light: #1f2937;
+        --color-subtle-bg-light: #f3f4f6;
+        --color-subtle-bg-hover-light: #f9fafb;
+        --color-border-light: #e5e7eb;
+        --color-text-muted-light: #6b7280;
+
+        --color-bg-dark: #1f2937;
+        --color-text-dark: #f9fafb;
+        --color-subtle-bg-dark: #374151;
+        --color-subtle-bg-hover-dark: #4b5563;
+        --color-border-dark: #4b5563;
+        --color-text-muted-dark: #9ca3af;
+      } /* Task completion animation */
+      @keyframes taskComplete {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      @keyframes taskFade {
+        0% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.6;
+        }
+      }
+
+      .task-complete-animation {
+        animation: taskComplete 0.3s ease-in-out,
+          taskFade 0.3s ease-in-out forwards;
+      }
+
+      /* Tooltip styles */
+      [data-tooltip] {
+        position: relative;
+        cursor: help;
+      }
+
+      [data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 4px 8px;
+        background-color: var(--color-subtle-bg);
+        color: var(--color-text-base);
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+        border: 1px solid var(--color-border);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+
+      [data-tooltip]:hover::after {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* --- Existing styles continue here --- */
     </style>
   </head>
   <body>
@@ -1164,17 +1253,28 @@
         const handleToggleComplete = (id, dateKey) => {
           const dk = dateKey || selectedDate;
           let taskStatus = "";
+          let taskElement = document.querySelector(`[data-task-id="${id}"]`);
+
           setTasks((pT) => {
             if (!pT[dk]) return pT;
             const newDateTasks = pT[dk].map((t) => {
               if (t.id === id) {
                 taskStatus = !t.completed ? "completed" : "active";
+                // Add animation class when marking as completed
+                if (!t.completed && taskElement) {
+                  taskElement.classList.add("task-complete-animation");
+                  // Remove the class after animation finishes
+                  setTimeout(() => {
+                    taskElement.classList.remove("task-complete-animation");
+                  }, 600); // 600ms = total animation duration
+                }
                 return { ...t, completed: !t.completed };
               }
               return t;
             });
             return { ...pT, [dk]: newDateTasks };
           });
+
           if (taskStatus)
             showAppNotification(`Task marked as ${taskStatus}.`, "info");
 
@@ -1378,14 +1478,16 @@
                   </div>
                   <div className="flex items-center space-x-2 w-full sm:w-auto">
                     <div className="relative flex-grow sm:flex-grow-0">
+                      {" "}
                       <input
                         ref={searchInputRef}
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search ( / )"
+                        placeholder="Search tasks"
                         className="form-input w-full pr-8"
                         aria-label="Search tasks"
+                        data-tooltip="Press '/' to focus search"
                       />
                       <ion-icon
                         name="search-outline"
@@ -2235,7 +2337,6 @@
           </form>
         );
       }
-
       function TaskItem({ task, onToggleComplete, onViewDetails, showDate }) {
         const priorityBorderClass = {
           high: "border-l-[var(--color-priority-high)]",
@@ -2252,6 +2353,8 @@
               "border-l-[var(--color-text-muted)]"
             }`}
             role="button"
+            data-task-id={task.id}
+            data-tooltip="Click or press Enter to view details"
             tabIndex={0}
             onClick={onViewDetails}
             onKeyDown={(e) => {
@@ -2265,12 +2368,16 @@
                   className="mt-1 shrink-0"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {" "}
                   <input
                     type="checkbox"
                     checked={task.completed}
                     onChange={onToggleComplete}
                     className="form-checkbox h-5 w-5 rounded cursor-pointer"
                     aria-label={`Mark task ${task.title} as ${
+                      task.completed ? "incomplete" : "complete"
+                    }`}
+                    data-tooltip={`Click to mark as ${
                       task.completed ? "incomplete" : "complete"
                     }`}
                   />
