@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Planner - Dynamic Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.6.0/tinycolor.min.js"></script>
+    <style>
+      /* Define CSS Variables for theming. These will be updated by React */
+      :root {
+        --color-primary: #64748b; /* Default primary color (slate) */
+        --color-bg-start: #0f172a; /* Default dark background start */
+        --color-bg-end: #1e293b; /* Default dark background end */
+        --color-text-base: #e2e8f0; /* Default base text */
+        --color-text-muted: #94a3b8; /* Default muted text */
+        --color-accent: #38bdf8; /* Default accent (sky blue) */
+        --color-accent-hover: #0ea5e9; /* Default accent hover */
+        --color-subtle-bg: #1e293b; /* Default subtle background (modals, cards) */
+        --color-subtle-bg-hover: #334155; /* Default subtle background hover */
+        --color-input-bg: #334155; /* Default input background */
+        --color-input-border: #475569; /* Default input border */
+        --color-input-focus-ring: #38bdf8; /* Default input focus ring */
+        --color-border: #475569; /* Default border/divider */
+        --color-scrollbar-track: #1e293b;
+        --color-scrollbar-thumb: #64748b;
+        --color-scrollbar-thumb-hover: #94a3b8;
+        --color-danger: #ef4444;
+        --color-warning: #f97316;
+        --color-success: #22c55e;
+        --color-info: #3b82f6;
+        --color-priority-high: #ef4444;
+        --color-priority-medium: #f97316;
+        --color-priority-low: #22c55e;
+        /* Removed themed category colors from variables */
+      }
+
+      /* Apply base styles using CSS Variables */
+      body {
+        background-image: linear-gradient(
+          to bottom right,
+          var(--color-bg-start),
+          var(--color-bg-end)
+        );
+        color: var(--color-text-base);
+        font-family: sans-serif; /* Use a default sans-serif font */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Scrollbar styles using CSS Variables */
+      ::-webkit-scrollbar {
+        width: 8px;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--color-scrollbar-track);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--color-scrollbar-thumb);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-scrollbar-thumb-hover);
+      }
+
+      /* Priority border styles */
+      .priority-high {
+        border-left-color: var(--color-priority-high);
+      }
+      .priority-medium {
+        border-left-color: var(--color-priority-medium);
+      }
+      .priority-low {
+        border-left-color: var(--color-priority-low);
+      }
+
+      /* Modal styles using CSS Variables */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 1rem;
+      }
+      .modal-content {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        width: 95%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        background: var(--color-subtle-bg); /* Use variable */
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3),
+          0 10px 10px -5px rgba(0, 0, 0, 0.2);
+      }
+      .modal-close-button {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: transparent;
+        border: none;
+        font-size: 1.75rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0.25rem;
+        color: var(--color-text-muted); /* Use variable */
+        transition: color 0.2s;
+      }
+      .modal-close-button:hover {
+        color: var(--color-text-base); /* Use variable */
+      }
+
+      /* Flatpickr theme using CSS Variables */
+      .flatpickr-calendar {
+        background-color: var(--color-input-bg); /* Use variable */
+        border-color: var(--color-border); /* Use variable */
+        color: var(--color-text-base); /* Use variable */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4),
+          0 4px 6px -2px rgba(0, 0, 0, 0.35);
+        border-radius: 0.375rem;
+      }
+      .flatpickr-months .flatpickr-month,
+      .flatpickr-current-month .flatpickr-monthDropdown-months,
+      .flatpickr-current-month input.cur-year {
+        color: var(--color-text-base); /* Use variable */
+        font-weight: 500;
+      }
+      .flatpickr-months .flatpickr-prev-month svg,
+      .flatpickr-months .flatpickr-next-month svg {
+        fill: var(--color-text-muted); /* Use variable */
+        width: 16px;
+        height: 16px;
+      }
+      .flatpickr-months .flatpickr-prev-month:hover svg,
+      .flatpickr-months .flatpickr-next-month:hover svg {
+        fill: var(--color-accent); /* Use variable */
+      }
+      .flatpickr-weekday {
+        color: var(--color-text-muted); /* Use variable */
+        font-weight: 500;
+      }
+      .flatpickr-day {
+        color: var(--color-text-base); /* Use variable */
+        border-radius: 0.25rem;
+        border: 1px solid transparent;
+      }
+      .flatpickr-day:hover,
+      .flatpickr-day:focus {
+        background: var(--color-subtle-bg-hover); /* Use variable */
+        color: var(--color-text-base); /* Use variable */
+        border-color: transparent;
+      }
+      .flatpickr-day.selected,
+      .flatpickr-day.startRange,
+      .flatpickr-day.endRange,
+      .flatpickr-day.selected:hover,
+      .flatpickr-day.startRange:hover,
+      .flatpickr-day.endRange:hover {
+        background: var(--color-accent); /* Use variable */
+        border-color: var(--color-accent); /* Use variable */
+        color: var(--color-text-on-accent); /* Use high contrast text */
+      }
+      /* Ensure high contrast for selected text dot */
+      .flatpickr-day.selected .task-indicator-dot {
+        background-color: var(--color-text-on-accent) !important;
+      }
+      .flatpickr-day.today {
+        border-color: var(--color-warning); /* Use variable */
+        color: var(--color-warning); /* Use variable */
+      }
+      .flatpickr-day.today:hover,
+      .flatpickr-day.today:focus {
+        background: var(--color-warning); /* Use variable */
+        border-color: var(--color-warning); /* Use variable */
+        color: #ffffff; /* White text on warning color */
+      }
+      .flatpickr-day.flatpickr-disabled,
+      .flatpickr-day.flatpickr-disabled:hover {
+        color: var(--color-text-muted); /* Use variable */
+        opacity: 0.5;
+        background: transparent;
+        cursor: default;
+      }
+      .flatpickr-input[readonly] {
+        cursor: pointer;
+      }
+      .flatpickr-day.has-tasks {
+        font-weight: bold;
+        position: relative;
+      }
+      .flatpickr-day.has-tasks .task-indicator-dot {
+        height: 6px;
+        width: 6px;
+        background-color: var(--color-warning); /* Use variable */
+        border-radius: 50%;
+        display: block;
+        position: absolute;
+        bottom: 3px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .flatpickr-day.has-tasks.selected .task-indicator-dot,
+      .flatpickr-day.has-tasks.today .task-indicator-dot {
+        background-color: #fff; /* White dot on selected/today */
+      }
+
+      /* Notification styles using CSS Variables */
+      .notification {
+        position: fixed;
+        top: 1.25rem;
+        right: 1.25rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        color: white;
+        z-index: 2000;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .notification.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .notification-error {
+        background-color: var(--color-danger);
+      }
+      .notification-success {
+        background-color: var(--color-success);
+      }
+      .notification-info {
+        background-color: var(--color-info);
+      }
+      .notification button {
+        background: transparent;
+        border: none;
+        color: white;
+        margin-left: 1rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      /* Task description styles */
+      .task-description-content {
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 0.5rem;
+        background-color: var(--color-input-bg); /* Use variable */
+        border-radius: 0.25rem;
+        border: 1px solid var(--color-border);
+      }
+
+      /* Progress bar styles using CSS Variables */
+      .progress-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: var(--color-input-bg); /* Use variable */
+        overflow: hidden;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        background-color: var(--color-accent); /* Use variable */
+        transition: width 0.3s ease-in-out;
+      }
+
+      /* Settings color option styles */
+      .color-option {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: border-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .color-option:hover {
+        transform: scale(1.1);
+        border-color: rgba(255, 255, 255, 0.7); /* White border on hover */
+      }
+      .color-option.selected {
+        border-color: var(
+          --color-accent
+        ); /* Use accent color for selected border */
+        transform: scale(1.15);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Utility class for accent text color */
+      .text-accent {
+        color: var(--color-accent);
+      }
+      .hover\:text-accent-hover:hover {
+        color: var(--color-accent-hover);
+      }
+      .bg-accent {
+        background-color: var(--color-accent);
+      }
+      .hover\:bg-accent-hover:hover {
+        background-color: var(--color-accent-hover);
+      }
+      .focus\:ring-accent {
+        --tw-ring-color: var(--color-accent);
+      } /* For Tailwind focus rings */
+      .focus\:border-accent {
+        --tw-border-opacity: 1;
+        border-color: var(--color-accent);
+      }
+
+      /* Style inputs and selects using CSS variables */
+      .form-input,
+      .form-select,
+      .form-textarea {
+        background-color: var(--color-input-bg);
+        border: 1px solid var(--color-input-border);
+        color: var(--color-text-base);
+        border-radius: 0.375rem; /* rounded-lg */
+        padding: 0.625rem; /* p-2.5 */
+        font-size: 0.875rem; /* text-sm */
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .form-input:focus,
+      .form-select:focus,
+      .form-textarea:focus {
+        outline: none;
+        border-color: var(--color-input-focus-ring);
+        box-shadow: 0 0 0 3px
+          rgba(var(--color-input-focus-ring-rgb, 56, 189, 248), 0.3); /* Focus ring, fallback added */
+      }
+      .form-input::placeholder,
+      .form-textarea::placeholder {
+        color: var(--color-text-muted);
+        opacity: 0.7;
+      }
+      .form-checkbox {
+        background-color: var(--color-input-bg);
+        border-color: var(--color-input-border);
+        color: var(--color-accent); /* Checkmark color */
+      }
+      .form-checkbox:checked {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+      }
+      .form-checkbox:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px
+          rgba(var(--color-input-focus-ring-rgb, 56, 189, 248), 0.3); /* Focus ring, fallback added */
+      }
+
+      /* Custom Time Input Styling */
+      .custom-time-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+
+      .custom-time-input-container .native-time-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0; /* Make it invisible */
+        z-index: 1; /* Ensure it's clickable */
+        cursor: pointer;
+      }
+
+      .custom-time-input-container .custom-display {
+        flex-grow: 1;
+        background-color: var(--color-input-bg);
+        border: 1px solid var(--color-input-border);
+        color: var(--color-text-base);
+        border-radius: 0.375rem; /* rounded-lg */
+        padding: 0.625rem 2.5rem 0.625rem 0.625rem; /* p-2.5, make space for icon */
+        font-size: 0.875rem; /* text-sm */
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        min-height: 2.5rem; /* Ensure consistent height */
+        display: flex;
+        align-items: center;
+      }
+
+      .custom-time-input-container .custom-display:empty:before {
+        content: attr(data-placeholder);
+        color: var(--color-text-muted);
+        opacity: 0.7;
+      }
+
+      .custom-time-input-container .custom-display:focus-within {
+        border-color: var(--color-input-focus-ring);
+        box-shadow: 0 0 0 3px
+          rgba(var(--color-input-focus-ring-rgb, 56, 189, 248), 0.3); /* Focus ring, fallback added */
+      }
+
+      .custom-time-input-container .input-icon {
+        position: absolute;
+        right: 0.625rem; /* p-2.5, align with padding */
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-text-muted); /* Use variable */
+        font-size: 1.25rem; /* text-xl */
+        pointer-events: none; /* Clicks pass through icon to input */
+        z-index: 2; /* Place above the native input */
+      }
+
+      /* Style buttons */
+      .btn {
+        padding: 0.625rem 1.25rem; /* px-5 py-2.5 */
+        border-radius: 0.375rem; /* rounded-lg */
+        font-weight: 500; /* font-medium */
+        font-size: 0.875rem; /* text-sm */
+        text-align: center;
+        transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      }
+      .btn-primary {
+        background-color: var(--color-accent);
+        color: var(--color-text-on-accent); /* Use high contrast text */
+      }
+      .btn-primary:hover {
+        background-color: var(--color-accent-hover);
+      }
+      .btn-primary:disabled {
+        background-color: var(--color-text-muted);
+        color: var(--color-subtle-bg); /* Ensure text contrast on disabled */
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-secondary {
+        background-color: var(--color-subtle-bg-hover);
+        color: var(--color-text-base);
+      }
+      .btn-secondary:hover {
+        background-color: var(--color-border);
+      }
+      .btn-danger {
+        background-color: var(--color-danger);
+        color: white;
+      }
+      .btn-danger:hover {
+        background-color: #dc2626; /* Darker red */
+      }
+      .btn-success {
+        background-color: var(--color-success);
+        color: white;
+      }
+      .btn-success:hover {
+        background-color: #16a34a; /* Darker green */
+      }
+      .btn-warning {
+        background-color: var(--color-warning);
+        color: white;
+      }
+      .btn-warning:hover {
+        background-color: #ea580c; /* Darker orange */
+      }
+
+      /* File input styling */
+      .form-file-input::file-selector-button {
+        margin-right: 1rem;
+        padding: 0.5rem 0.75rem; /* file:py-2 file:px-3 */
+        border-radius: 0.375rem; /* file:rounded-md */
+        border: 0;
+        font-size: 0.875rem; /* file:text-sm */
+        font-weight: 600; /* file:font-semibold */
+        background-color: var(--color-accent); /* file:bg-sky-500 */
+        color: var(--color-text-on-accent); /* Use high contrast text */
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .form-file-input::file-selector-button:hover {
+        background-color: var(--color-accent-hover); /* hover:file:bg-sky-600 */
+      }
+      .form-file-input {
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+      }
+
+      /* Ensure high contrast text on colored backgrounds */
+      .text-on-danger {
+        color: white;
+      }
+      .text-on-warning {
+        color: white;
+      }
+      .text-on-success {
+        color: white;
+      }
+      .text-on-info {
+        color: white;
+      }
+      /* Fixed Purple Category Tag Styling */
+      .category-tag {
+        display: inline-flex;
+        align-items: center;
+        /* Adjusted vertical padding to match py-0.5 (0.125rem) */
+        padding: 0.125rem 0.75rem; /* py-0.5 px-3 */
+        border-radius: 9999px; /* rounded-full */
+        font-size: 0.75rem; /* text-xs */
+        font-weight: 500; /* font-medium */
+        margin-right: 0.5rem;
+        /* Removed margin-bottom */
+        background-color: #7e22ce; /* Fixed Purple 700 */
+        color: #ffffff; /* White text for contrast */
+        cursor: pointer;
+        white-space: nowrap; /* Prevent tag text from wrapping */
+      }
+      /* Adjust margin for last tag in a group */
+      .category-tag:last-child {
+        margin-right: 0;
+      }
+      .category-tag .remove-icon {
+        margin-left: 0.5rem;
+        font-size: 0.75rem; /* text-xs */
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useMemo, useCallback, useRef } = React;
+      // Make tinycolor globally available
+      const tc = tinycolor;
+
+      // --- Helper Functions ---
+      const getTodayDateString = () => {
+        const today = new Date();
+        const offset = today.getTimezoneOffset() * 60000;
+        const localToday = new Date(today.getTime() - offset);
+        return localToday.toISOString().split("T")[0];
+      };
+
+      const formatDateForDisplay = (dateString) => {
+        if (!dateString) return "No Date";
+        const date = new Date(dateString + "T00:00:00Z");
+        return date.toLocaleDateString(undefined, {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          timeZone: "UTC",
+        });
+      };
+
+      const formatShortDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString + "T00:00:00Z");
+        return date.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          timeZone: "UTC",
+        });
+      };
+
+      const formatTimeForDisplay = (timeString) => {
+        if (!timeString) return "";
+        try {
+          const [hours, minutes] = timeString.split(":");
+          // Create a date object today to use locale time formatting correctly
+          const date = new Date();
+          date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0); // Use base 10 for parseInt
+          // Use date object for proper locale formatting
+          return date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          });
+        } catch (e) {
+          console.error("Error formatting time:", timeString, e);
+          return timeString; // Return original string if formatting fails
+        }
+      };
+
+      // --- Utility for setting CSS Variables ---
+      const applyThemeVariables = (primaryColor) => {
+        const root = document.documentElement;
+        const color = tc(primaryColor);
+        if (!color.isValid()) {
+          console.error("Invalid primary color provided:", primaryColor);
+          return;
+        }
+
+        const isDark = color.isDark();
+        let timeInputColorScheme = "default"; // Default scheme
+
+        // Calculate derived colors with fallbacks for pure black/white
+        let bgStart,
+          bgEnd,
+          accent,
+          accentHover,
+          subtleBg,
+          subtleBgHover,
+          inputBg,
+          inputBorder,
+          border;
+
+        if (color.getBrightness() < 10) {
+          // Very dark (black theme)
+          bgStart = "#000000";
+          bgEnd = "#111111";
+          accent = "#555555";
+          accentHover = "#777777";
+          subtleBg = "#1a1a1a";
+          subtleBgHover = "#2c2c2c";
+          inputBg = "#222222";
+          inputBorder = "#333333";
+          border = "#333333";
+          timeInputColorScheme = "light"; // Suggest light controls for time input on black theme
+        } else if (color.getBrightness() > 245) {
+          // Very light
+          bgStart = "#ffffff";
+          bgEnd = "#f8f9fa";
+          accent = color.clone().darken(15).saturate(15).toHexString();
+          accentHover = tc(accent).darken(8).toHexString();
+          subtleBg = "#f1f3f5";
+          subtleBgHover = "#e9ecef";
+          inputBg = "#ffffff";
+          inputBorder = "#ced4da";
+          border = "#dee2e6";
+          timeInputColorScheme = "dark"; // Suggest dark controls for light theme
+        } else {
+          // Standard calculation
+          bgStart = isDark
+            ? color.clone().darken(30).spin(-10).toHslString()
+            : color.clone().lighten(45).spin(10).toHslString();
+          bgEnd = isDark
+            ? color.clone().darken(20).toHslString()
+            : color.clone().lighten(35).toHslString();
+          accent = isDark
+            ? color.clone().lighten(15).saturate(10).toHexString()
+            : color.clone().darken(10).saturate(10).toHexString();
+          accentHover = tc(accent).isDark()
+            ? tc(accent).lighten(8).toHexString()
+            : tc(accent).darken(8).toHexString();
+          subtleBg = isDark
+            ? color.clone().darken(15).desaturate(10).toRgbString()
+            : color.clone().lighten(30).desaturate(20).toRgbString();
+          subtleBgHover = tc(subtleBg).isDark()
+            ? tc(subtleBg).lighten(8).toRgbString()
+            : tc(subtleBg).darken(8).toRgbString();
+          inputBg = isDark
+            ? tc(subtleBg).lighten(5).toRgbString()
+            : tc(subtleBg).darken(5).toRgbString();
+          inputBorder = tc(inputBg).isDark()
+            ? tc(inputBg).lighten(10).toRgbString()
+            : tc(inputBg).darken(10).toRgbString();
+          border = inputBorder;
+          timeInputColorScheme = isDark ? "light" : "dark"; // Match scheme to theme brightness
+        }
+
+        const textBase =
+          isDark || color.getBrightness() < 128 ? "#e2e8f0" : "#1f2937";
+        const textMuted =
+          isDark || color.getBrightness() < 128 ? "#94a3b8" : "#6b7280";
+        const scrollbarThumb = textMuted;
+        const scrollbarThumbHover = tc(scrollbarThumb).isDark()
+          ? tc(scrollbarThumb).lighten(10).toRgbString()
+          : tc(scrollbarThumb).darken(10).toRgbString();
+        const textOnAccent = tc
+          .mostReadable(accent, [textBase, "#ffffff", "#000000"])
+          .toHexString();
+        const accentRgb = tc(accent).toRgb();
+
+        // Set CSS Variables
+        root.style.setProperty("--color-primary", primaryColor);
+        root.style.setProperty("--color-bg-start", bgStart);
+        root.style.setProperty("--color-bg-end", bgEnd);
+        root.style.setProperty("--color-text-base", textBase);
+        root.style.setProperty("--color-text-muted", textMuted);
+        root.style.setProperty("--color-accent", accent);
+        root.style.setProperty("--color-accent-hover", accentHover);
+        root.style.setProperty("--color-subtle-bg", subtleBg);
+        root.style.setProperty("--color-subtle-bg-hover", subtleBgHover);
+        root.style.setProperty("--color-input-bg", inputBg);
+        root.style.setProperty("--color-input-border", inputBorder);
+        root.style.setProperty("--color-input-focus-ring", accent);
+        root.style.setProperty(
+          "--color-input-focus-ring-rgb",
+          `${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}`
+        );
+        root.style.setProperty("--color-border", border);
+        root.style.setProperty("--color-scrollbar-track", bgEnd);
+        root.style.setProperty("--color-scrollbar-thumb", scrollbarThumb);
+        root.style.setProperty(
+          "--color-scrollbar-thumb-hover",
+          scrollbarThumbHover
+        );
+        root.style.setProperty("--color-text-on-accent", textOnAccent);
+        root.style.setProperty(
+          "--time-input-color-scheme",
+          timeInputColorScheme
+        ); // Set time input scheme
+
+        // Update Flatpickr instances
+        if (window.flatpickr && window.flatpickr.instances) {
+          window.flatpickr.instances.forEach((instance) => {
+            if (instance.calendarContainer) {
+              instance.redraw();
+            }
+          });
+        }
+      };
+
+      // --- Components ---
+
+      function Notification({ message, type, onClose }) {
+        if (!message) return null;
+        const [show, setShow] = useState(false);
+        useEffect(() => {
+          if (message) {
+            setShow(true);
+            const timer = setTimeout(() => {
+              setShow(false);
+              setTimeout(onClose, 300);
+            }, 3000);
+            return () => clearTimeout(timer);
+          } else {
+            setShow(false);
+          }
+        }, [message, onClose]);
+        let typeClasses = "notification-info";
+        if (type === "error") typeClasses = "notification-error";
+        if (type === "success") typeClasses = "notification-success";
+        return (
+          <div
+            className={`notification ${typeClasses} ${show ? "show" : ""}`}
+            role="alert"
+          >
+            <span>{message}</span>
+            <button
+              onClick={() => {
+                setShow(false);
+                setTimeout(onClose, 300);
+              }}
+              aria-label="Close notification"
+            >
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        );
+      }
+
+      function ErrorBoundary({ children }) {
+        const [hasError, setHasError] = useState(false);
+        useEffect(() => {
+          const errorHandler = (error, errorInfo) => {
+            console.error("ErrorBoundary:", error, errorInfo);
+            setHasError(true);
+          };
+          window.addEventListener("error", (event) => {
+            if (!hasError) {
+              console.error("Global error:", event.error);
+              setHasError(true);
+            }
+          });
+        }, [hasError]);
+        if (hasError) {
+          return (
+            <div className="text-center py-8 text-[var(--color-text-muted)]">
+              <h2 className="text-2xl mb-4 text-[var(--color-danger)]">
+                Oops! Something went wrong.
+              </h2>
+              <p>Please try refreshing the page.</p>
+            </div>
+          );
+        }
+        return <React.Fragment>{children}</React.Fragment>;
+      }
+
+      function SettingsModal({ onClose, onThemeChange, currentPrimaryColor }) {
+        const themeOptions = [
+          { name: "Slate", color: "#475569" }, // Adjusted to a richer slate color
+          { name: "Blue", color: "#2563eb" }, // Adjusted to a more vibrant blue
+          { name: "Black", color: "#111111" },
+        ];
+        return (
+          <div
+            className="modal-overlay"
+            role="dialog"
+            aria-labelledby="settings-modal-title"
+            aria-modal="true"
+          >
+            <div className="modal-content">
+              <button
+                onClick={onClose}
+                className="modal-close-button"
+                aria-label="Close settings modal"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+              <h2
+                id="settings-modal-title"
+                className="text-2xl font-bold text-accent mb-4"
+              >
+                Settings
+              </h2>
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2">
+                  Select Theme Color:
+                </h4>
+                <div className="flex flex-wrap gap-4">
+                  {themeOptions.map((theme) => (
+                    <button
+                      key={theme.name}
+                      onClick={() => onThemeChange(theme.color)}
+                      className={`color-option ${
+                        tc(currentPrimaryColor).toHexString() ===
+                        tc(theme.color).toHexString()
+                          ? "selected"
+                          : ""
+                      }`}
+                      style={{ backgroundColor: theme.color }}
+                      aria-label={`Select ${theme.name} theme`}
+                      title={theme.name}
+                    ></button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        const [tasks, setTasks] = useState(() => {
+          try {
+            const s = localStorage.getItem("dailyPlannerTasks_v9");
+            const savedTasks = s ? JSON.parse(s) : {};
+            // Ensure categories is always an array and convert old string format
+            Object.keys(savedTasks).forEach((dateKey) => {
+              savedTasks[dateKey] = savedTasks[dateKey].map((task) => ({
+                ...task,
+                categories: Array.isArray(task.categories)
+                  ? task.categories
+                  : task.category
+                  ? [task.category]
+                      .map((c) => c.trim().toLowerCase())
+                      .filter(Boolean)
+                  : [], // Convert old 'category' to array of cleaned lowercase strings
+              }));
+            });
+            return savedTasks;
+          } catch (e) {
+            console.error("Parse tasks error", e);
+            return {};
+          }
+        });
+        const [selectedDate, setSelectedDate] = useState(getTodayDateString());
+        const [filter, setFilter] = useState("all");
+        const [sortBy, setSortBy] = useState("time");
+        const [categoryFilter, setCategoryFilter] = useState("all");
+        const [searchQuery, setSearchQuery] = useState("");
+        const [editingTask, setEditingTask] = useState(null);
+        const [viewingTaskDetails, setViewingTaskDetails] = useState(null);
+        const [showAllTasks, setShowAllTasks] = useState(false);
+        const [showSettings, setShowSettings] = useState(false);
+        const [primaryThemeColor, setPrimaryThemeColor] = useState(() => {
+          const s = localStorage.getItem("dailyPlannerThemeColor"),
+            d = "#64748b",
+            a = ["#64748b", "#3b82f6", "#111111"];
+          return s && a.includes(tc(s).toHexString()) ? s : d;
+        });
+        const [notification, setNotification] = useState({
+          message: "",
+          type: "",
+          key: 0,
+        });
+        const dateInputRef = useRef(null);
+        const flatpickrInstanceRef = useRef(null);
+        const searchInputRef = useRef(null);
+        const isInitialMount = useRef(true);
+
+        // --- Effects ---
+        useEffect(() => {
+          applyThemeVariables(primaryThemeColor);
+          localStorage.setItem("dailyPlannerThemeColor", primaryThemeColor);
+          if (flatpickrInstanceRef.current) {
+            flatpickrInstanceRef.current.redraw();
+          }
+        }, [primaryThemeColor]);
+        useEffect(() => {
+          if (!isInitialMount.current || Object.keys(tasks).length > 0) {
+            // Prepare tasks for saving: ensure categories are arrays of strings
+            const tasksToSave = Object.fromEntries(
+              Object.entries(tasks).map(([dateKey, taskList]) => [
+                dateKey,
+                taskList.map((task) => ({
+                  ...task,
+                  categories: Array.isArray(task.categories)
+                    ? task.categories
+                        .map((c) => c.trim().toLowerCase())
+                        .filter(Boolean) // Clean and lowercase categories
+                    : [], // Ensure it's an array
+                })),
+              ])
+            );
+
+            localStorage.setItem(
+              "dailyPlannerTasks_v9",
+              JSON.stringify(tasksToSave)
+            );
+          }
+          isInitialMount.current = false;
+          if (flatpickrInstanceRef.current) {
+            flatpickrInstanceRef.current.redraw();
+          }
+        }, [tasks]);
+        useEffect(() => {
+          let i = null;
+          if (dateInputRef.current) {
+            if (flatpickrInstanceRef.current) {
+              flatpickrInstanceRef.current.destroy();
+            }
+            i = flatpickr(dateInputRef.current, {
+              dateFormat: "Y-m-d",
+              defaultDate: selectedDate,
+              disableMobile: true,
+              allowInput: false,
+              onChange: (d) => {
+                if (d[0]) {
+                  const n = d[0].toISOString().split("T")[0];
+                  setSelectedDate(n);
+                  if (showAllTasks) setShowAllTasks(false);
+                }
+              },
+              onDayCreate: (dO, dS, f, dE) => {
+                const k = dE.dateObj.toISOString().split("T")[0];
+                if (tasks[k]?.length > 0) {
+                  dE.classList.add("has-tasks");
+                  const dot = document.createElement("span");
+                  dot.className = "task-indicator-dot";
+                  dE.appendChild(dot);
+                }
+              },
+              onOpen: (sD, dS, inst) => {
+                inst.jumpToDate(selectedDate);
+              },
+            });
+            flatpickrInstanceRef.current = i;
+            applyThemeVariables(primaryThemeColor);
+          }
+          return () => {
+            if (i) {
+              i.destroy();
+              flatpickrInstanceRef.current = null;
+            }
+          };
+        }, [tasks, selectedDate, showAllTasks, primaryThemeColor]);
+        useEffect(() => {
+          const handleKeyPress = (e) => {
+            if (
+              e.key === "/" &&
+              !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)
+            ) {
+              e.preventDefault();
+              searchInputRef.current?.focus();
+            }
+          };
+          document.addEventListener("keydown", handleKeyPress);
+          return () => document.removeEventListener("keydown", handleKeyPress);
+        }, []);
+
+        // --- Memos ---
+        const categories = useMemo(() => {
+          const allCategories = new Set(["all"]);
+          Object.values(tasks)
+            .flat()
+            .forEach((task) => {
+              if (Array.isArray(task.categories)) {
+                task.categories.forEach((cat) => {
+                  if (cat && cat.trim()) {
+                    allCategories.add(cat.trim().toLowerCase()); // Store categories lowercase for filtering
+                  }
+                });
+              } else if (task.category && task.category.trim()) {
+                // Handle old 'category' string just in case
+                allCategories.add(task.category.trim().toLowerCase());
+              }
+            });
+          return Array.from(allCategories).sort();
+        }, [tasks]);
+
+        const tasksToDisplaySource = useMemo(() => {
+          if (showAllTasks) {
+            return Object.entries(tasks).flatMap(([d, dT]) =>
+              dT.map((t) => ({ ...t, originalDate: d }))
+            );
+          }
+          return tasks[selectedDate] || [];
+        }, [tasks, selectedDate, showAllTasks]);
+
+        const filteredAndSortedTasks = useMemo(() => {
+          let currentTasks = [...tasksToDisplaySource];
+
+          // Filter by Status
+          if (filter === "active")
+            currentTasks = currentTasks.filter((t) => !t.completed);
+          else if (filter === "completed")
+            currentTasks = currentTasks.filter((t) => t.completed);
+
+          // Filter by Category
+          if (categoryFilter !== "all") {
+            const filterLower = categoryFilter.toLowerCase();
+            currentTasks = currentTasks.filter(
+              (task) =>
+                Array.isArray(task.categories) &&
+                task.categories.some((cat) => cat.toLowerCase() === filterLower) // Compare lowercase
+            );
+          }
+
+          // Filter by Search Query
+          if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            currentTasks = currentTasks.filter(
+              (task) =>
+                task.title.toLowerCase().includes(q) ||
+                (task.description &&
+                  task.description.toLowerCase().includes(q)) ||
+                (Array.isArray(task.categories) &&
+                  task.categories.some((cat) => cat.toLowerCase().includes(q))) // Search within categories
+            );
+          }
+
+          // Sort Tasks
+          currentTasks.sort((a, b) => {
+            if (showAllTasks && sortBy === "originalDate") {
+              if (a.originalDate < b.originalDate) return -1;
+              if (a.originalDate > b.originalDate) return 1;
+            }
+            if (sortBy === "time") {
+              // Handle tasks without time
+              if (!a.time && !b.time) return 0;
+              if (!a.time) return 1; // Task a without time goes after task b with time
+              if (!b.time) return -1; // Task b without time goes after task a with time
+              return (a.time || "24:00").localeCompare(b.time || "24:00"); // Use 24:00 to sort tasks without time at the end
+            } else if (sortBy === "priority") {
+              const priorityOrder = { high: 1, medium: 2, low: 3, default: 4 };
+              const priorityA =
+                priorityOrder[a.priority] || priorityOrder.default;
+              const priorityB =
+                priorityOrder[b.priority] || priorityOrder.default;
+              if (priorityA !== priorityB) return priorityA - priorityB;
+            }
+            // Secondary sort by time if primary sort is not time, or if priorities are the same
+            // This ensures consistent order when sorting by priority or date
+            const timeA = a.time || "24:00";
+            const timeB = b.time || "24:00";
+            return timeA.localeCompare(timeB);
+          });
+
+          // Add a tertiary sort by title for stability if time and priority are the same
+          currentTasks.sort((a, b) => {
+            // Primary sort handled above
+            const primarySortResult =
+              showAllTasks && sortBy === "originalDate"
+                ? a.originalDate.localeCompare(b.originalDate)
+                : sortBy === "time"
+                ? (a.time || "24:00").localeCompare(b.time || "24:00")
+                : sortBy === "priority"
+                ? ({ high: 1, medium: 2, low: 3, default: 4 }[a.priority] ||
+                    4) -
+                  ({ high: 1, medium: 2, low: 3, default: 4 }[b.priority] || 4)
+                : 0;
+
+            if (primarySortResult !== 0) return primarySortResult;
+
+            // Secondary sort by time if primary wasn't time or they were equal
+            if (sortBy !== "time") {
+              const timeA = a.time || "24:00";
+              const timeB = b.time || "24:00";
+              const secondarySortResult = timeA.localeCompare(timeB);
+              if (secondarySortResult !== 0) return secondarySortResult;
+            }
+
+            // Tertiary sort by title
+            return a.title.localeCompare(b.title);
+          });
+
+          return currentTasks;
+        }, [
+          tasksToDisplaySource,
+          filter,
+          sortBy,
+          showAllTasks,
+          categoryFilter,
+          searchQuery,
+        ]);
+
+        const taskProgress = useMemo(() => {
+          const totalTasks = tasksToDisplaySource.length;
+          const completedTasks = tasksToDisplaySource.filter(
+            (t) => t.completed
+          ).length;
+          return totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+        }, [tasksToDisplaySource]);
+
+        // --- Event Handlers ---
+        const showAppNotification = (message, type = "info") => {
+          setNotification({ message, type, key: Date.now() });
+        };
+        const handleAddTask = (taskDetails) => {
+          const targetDate = taskDetails.date;
+          if (!targetDate) {
+            showAppNotification("Please select a date.", "error");
+            return;
+          }
+          const newTask = {
+            id: Date.now(),
+            title: taskDetails.title,
+            description: taskDetails.description,
+            time: taskDetails.time,
+            priority: taskDetails.priority,
+            categories: taskDetails.categories || [], // Ensure categories is an array
+            imageUrl: taskDetails.imageUrl,
+            completed: false,
+            // date is not stored in the task object itself, but as the key in the tasks state
+          };
+          setTasks((prevTasks) => ({
+            ...prevTasks,
+            [targetDate]: [...(prevTasks[targetDate] || []), newTask],
+          }));
+          showAppNotification("Task added!", "success");
+          // Form reset handled within TaskForm
+        };
+        const handleToggleComplete = (id, dateKey) => {
+          const dk = dateKey || selectedDate;
+          let taskStatus = "";
+          setTasks((pT) => {
+            if (!pT[dk]) return pT;
+            const newDateTasks = pT[dk].map((t) => {
+              if (t.id === id) {
+                taskStatus = !t.completed ? "completed" : "active";
+                return { ...t, completed: !t.completed };
+              }
+              return t;
+            });
+            return { ...pT, [dk]: newDateTasks };
+          });
+          if (taskStatus)
+            showAppNotification(`Task marked as ${taskStatus}.`, "info");
+
+          // Update viewing task details if it's the same task
+          if (
+            viewingTaskDetails?.id === id &&
+            viewingTaskDetails.displayDate === dk
+          ) {
+            setViewingTaskDetails((prev) =>
+              prev ? { ...prev, completed: !prev.completed } : null
+            );
+          }
+        };
+        const handleDeleteTask = (id, dateKey) => {
+          if (window.confirm("Delete this task?")) {
+            const dk = dateKey || selectedDate;
+            setTasks((pT) => {
+              const newTasks = { ...pT };
+              if (newTasks[dk]) {
+                newTasks[dk] = newTasks[dk].filter((t) => t.id !== id);
+                if (newTasks[dk].length === 0) delete newTasks[dk];
+              }
+              return newTasks;
+            });
+            if (editingTask?.id === id) setEditingTask(null);
+            if (
+              viewingTaskDetails?.id === id &&
+              viewingTaskDetails.displayDate === dk
+            )
+              setViewingTaskDetails(null);
+            showAppNotification("Task deleted.", "info");
+          }
+        };
+        const handleViewTaskDetails = (task) => {
+          setViewingTaskDetails({
+            ...task,
+            displayDate: task.originalDate || selectedDate,
+          });
+        };
+        const openEditModalFromDetail = (task) => {
+          setViewingTaskDetails(null);
+          setEditingTask({
+            ...task,
+            dateKeyForEdit:
+              task.displayDate || task.originalDate || selectedDate,
+          });
+        };
+        const handleEditTask = (updatedTask) => {
+          const originalDateKey = updatedTask.dateKeyForEdit;
+          const newDateKey = updatedTask.date || originalDateKey; // New date from form, fallback to original
+
+          if (!originalDateKey) {
+            console.error("Original date key missing for edit!");
+            showAppNotification("Error saving task.", "error");
+            return;
+          }
+
+          setTasks((prevTasks) => {
+            const newTasks = { ...prevTasks };
+            // Ensure categories are cleaned and lowercased before saving
+            const taskToSave = {
+              ...updatedTask,
+              categories: Array.isArray(updatedTask.categories)
+                ? updatedTask.categories
+                    .map((c) => c.trim().toLowerCase())
+                    .filter(Boolean)
+                : [],
+            };
+
+            delete taskToSave.dateKeyForEdit; // Clean up temp key
+            delete taskToSave.date; // Clean up temp date
+
+            // Remove from original date if date changed or if staying on same date (to re-add in case of order change)
+            if (newTasks[originalDateKey]) {
+              newTasks[originalDateKey] = newTasks[originalDateKey].filter(
+                (task) => task.id !== updatedTask.id
+              );
+              if (newTasks[originalDateKey].length === 0) {
+                delete newTasks[originalDateKey];
+              }
+            }
+
+            // Add to new date
+            if (!newTasks[newDateKey]) {
+              newTasks[newDateKey] = [];
+            }
+            newTasks[newDateKey].push(taskToSave);
+
+            // Sort tasks for the new date key for consistent display order
+            if (newTasks[newDateKey]) {
+              newTasks[newDateKey].sort((a, b) => {
+                const timeA = a.time || "24:00";
+                const timeB = b.time || "24:00";
+                if (timeA !== timeB) return timeA.localeCompare(timeB);
+                const priorityOrder = {
+                  high: 1,
+                  medium: 2,
+                  low: 3,
+                  default: 4,
+                };
+                const priorityA =
+                  priorityOrder[a.priority] || priorityOrder.default;
+                const priorityB =
+                  priorityOrder[b.priority] || priorityOrder.default;
+                if (priorityA !== priorityB) return priorityA - priorityB;
+                return a.title.localeCompare(b.title);
+              });
+            }
+
+            return newTasks;
+          });
+
+          setEditingTask(null);
+          showAppNotification("Task updated.", "success");
+        };
+
+        const handleThemeChange = (newColor) => {
+          setPrimaryThemeColor(newColor);
+          setShowSettings(false);
+          showAppNotification("Theme updated!", "success");
+        };
+
+        const handleExportTasks = () => {
+          const exportData = {
+            tasks,
+            version: "1.0",
+            exportDate: new Date().toISOString(),
+          };
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `daily-planner-backup-${
+            new Date().toISOString().split("T")[0]
+          }.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showAppNotification("Tasks exported successfully!", "success");
+        };
+
+        const handleImportTasks = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData.tasks && importedData.version) {
+                  setTasks((prevTasks) => ({
+                    ...prevTasks,
+                    ...importedData.tasks,
+                  }));
+                  showAppNotification(
+                    "Tasks imported successfully!",
+                    "success"
+                  );
+                } else {
+                  throw new Error("Invalid file format");
+                }
+              } catch (error) {
+                showAppNotification(
+                  "Error importing tasks. Please check the file format.",
+                  "error"
+                );
+              }
+            };
+            reader.onerror = () => {
+              showAppNotification("Error reading file.", "error");
+            };
+            reader.readAsText(file);
+          }
+        };
+
+        // --- Render ---
+        return (
+          <ErrorBoundary>
+            <div className="container mx-auto p-4 md:p-8 max-w-5xl min-h-screen">
+              <Notification
+                key={notification.key}
+                message={notification.message}
+                type={notification.type}
+                onClose={() =>
+                  setNotification({ message: "", type: "", key: 0 })
+                }
+              />
+              <header className="mb-6 md:mb-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-accent tracking-tight">
+                      Daily Planner
+                    </h1>
+                    <p className="text-[var(--color-text-muted)] mt-1 text-sm sm:text-base">
+                      {showAllTasks
+                        ? "Viewing all tasks"
+                        : `Organize for ${formatDateForDisplay(selectedDate)}`}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2 w-full sm:w-auto">
+                    <div className="relative flex-grow sm:flex-grow-0">
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search ( / )"
+                        className="form-input w-full pr-8"
+                        aria-label="Search tasks"
+                      />
+                      <ion-icon
+                        name="search-outline"
+                        class="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-[var(--color-text-muted)] text-xl pointer-events-none"
+                      ></ion-icon>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={handleExportTasks}
+                        className="btn btn-secondary flex items-center gap-2"
+                        aria-label="Export tasks"
+                        title="Export tasks"
+                      >
+                        <ion-icon name="download-outline"></ion-icon>
+                        <span>Export</span>
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            document.getElementById("file-import").click()
+                          }
+                          className="btn btn-secondary flex items-center gap-2"
+                          aria-label="Import tasks"
+                          title="Import tasks"
+                        >
+                          <ion-icon name="upload-outline"></ion-icon>
+                          <span>Import</span>
+                        </button>
+                        <input
+                          id="file-import"
+                          type="file"
+                          accept=".json"
+                          onChange={handleImportTasks}
+                          style={{ display: "none" }}
+                          aria-label="Import tasks"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setShowSettings(true)}
+                        className="btn btn-secondary flex items-center gap-2"
+                        aria-label="Settings"
+                        title="Settings"
+                      >
+                        <ion-icon name="settings-outline"></ion-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </header>
+              <main className="bg-[var(--color-subtle-bg)] shadow-2xl rounded-xl p-4 sm:p-6 md:p-8">
+                <div className="mb-6 flex flex-col lg:flex-row justify-between items-center gap-4 flex-wrap">
+                  <div
+                    className={
+                      showAllTasks ? "opacity-50 cursor-not-allowed" : ""
+                    }
+                  >
+                    <label
+                      htmlFor="date-picker-flatpickr"
+                      className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                    >
+                      Select Date:
+                    </label>
+                    <input
+                      type="text"
+                      id="date-picker-flatpickr"
+                      ref={dateInputRef}
+                      readOnly
+                      disabled={showAllTasks}
+                      className="form-input w-full lg:w-auto"
+                      aria-label="Select date"
+                      placeholder={
+                        showAllTasks ? "Viewing All Tasks" : "Select Date"
+                      }
+                    />
+                  </div>
+                  <div className="flex items-end gap-3 sm:gap-4 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
+                    <button
+                      onClick={() => setShowAllTasks((prev) => !prev)}
+                      className={`btn ${
+                        showAllTasks ? "btn-primary" : "btn-secondary"
+                      }`}
+                      aria-pressed={showAllTasks}
+                    >
+                      {showAllTasks ? "View Selected Date" : "View All Tasks"}
+                    </button>
+                    <div>
+                      <label
+                        htmlFor="category-filter"
+                        className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                      >
+                        Category Filter:
+                      </label>
+                      <select
+                        id="category-filter"
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="form-select w-full sm:w-auto"
+                        aria-label="Filter by category"
+                      >
+                        {categories.map((c) => (
+                          <option key={c} value={c}>
+                            {c.charAt(0).toUpperCase() + c.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="filter"
+                        className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                      >
+                        Status Filter:
+                      </label>
+                      <select
+                        id="filter"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="form-select w-full sm:w-auto"
+                        aria-label="Filter by status"
+                      >
+                        <option value="all">All</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="sort"
+                        className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                      >
+                        Sort By:
+                      </label>
+                      <select
+                        id="sort"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="form-select w-full sm:w-auto"
+                        aria-label="Sort tasks"
+                      >
+                        <option value="time">Time</option>
+                        <option value="priority">Priority</option>
+                        {showAllTasks && (
+                          <option value="originalDate">Date</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-accent">
+                      {showAllTasks
+                        ? "All Tasks"
+                        : `Tasks for ${formatDateForDisplay(selectedDate)}`}
+                    </h2>
+                    <div className="text-sm text-[var(--color-text-muted)]">
+                      {tasksToDisplaySource.length > 0 && (
+                        <span>{Math.round(taskProgress)}% Complete</span>
+                      )}
+                    </div>
+                  </div>
+                  {tasksToDisplaySource.length > 0 && (
+                    <div className="progress-bar">
+                      <div
+                        className="progress-bar-fill"
+                        style={{ width: `${taskProgress}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
+
+                <TaskForm
+                  onAddTask={handleAddTask}
+                  formId="addTaskForm"
+                  selectedDateForNewTask={selectedDate}
+                  showAppNotification={showAppNotification}
+                  existingCategories={categories.filter((c) => c !== "all")} // Pass existing categories
+                />
+
+                {
+                  filteredAndSortedTasks.length === 0 ? (
+                    <p className="text-center text-[var(--color-text-muted)] py-6">
+                      No tasks found.
+                    </p>
+                  ) : (
+                    <div className="space-y-4 mt-6 max-h-[55vh] overflow-y-auto pr-2">
+                      {filteredAndSortedTasks.map((task) => (
+                        <TaskItem
+                          key={task.id}
+                          task={task}
+                          onToggleComplete={() =>
+                            handleToggleComplete(
+                              task.id,
+                              task.originalDate || selectedDate
+                            )
+                          }
+                          onViewDetails={() => handleViewTaskDetails(task)}
+                          showDate={showAllTasks}
+                        />
+                      ))}
+                    </div>
+                  )
+                  /* Removed extra closing brace here */
+                }
+              </main>
+              <footer className="mt-6 text-center text-sm text-[var(--color-text-muted)]">
+                <p>
+                  &copy; {new Date().getFullYear()}{" "}
+                  <a
+                    href="mailto:barrtechsolutions@gmail.com"
+                    className="text-accent hover:text-accent-hover transition-colors"
+                  >
+                    BarrTech Solutions
+                  </a>
+                  . All rights reserved.
+                </p>
+              </footer>
+              {viewingTaskDetails && (
+                <TaskDetailModal
+                  task={viewingTaskDetails}
+                  onClose={() => setViewingTaskDetails(null)}
+                  onEdit={() => openEditModalFromDetail(viewingTaskDetails)}
+                  onDelete={() =>
+                    handleDeleteTask(
+                      viewingTaskDetails.id,
+                      viewingTaskDetails.displayDate
+                    )
+                  }
+                  onToggleComplete={() =>
+                    handleToggleComplete(
+                      viewingTaskDetails.id,
+                      viewingTaskDetails.displayDate
+                    )
+                  }
+                  displayDate={viewingTaskDetails.displayDate}
+                />
+              )}
+              {editingTask && (
+                <EditTaskModal
+                  task={editingTask}
+                  onSave={handleEditTask}
+                  onClose={() => setEditingTask(null)}
+                  showAppNotification={showAppNotification}
+                  existingCategories={categories.filter((c) => c !== "all")} // Pass existing categories
+                />
+              )}
+              {showSettings && (
+                <SettingsModal
+                  onClose={() => setShowSettings(false)}
+                  onThemeChange={handleThemeChange}
+                  currentPrimaryColor={primaryThemeColor}
+                />
+              )}
+            </div>
+          </ErrorBoundary>
+        );
+      }
+
+      // --- Other Components (TaskForm, TaskItem, TaskDetailModal, EditTaskModal) ---
+
+      function TaskForm({
+        onAddTask,
+        initialData = null,
+        onSave,
+        formId,
+        showAppNotification,
+        selectedDateForNewTask,
+        existingCategories = [], // Receive existing categories from App
+      }) {
+        const [title, setTitle] = useState("");
+        const [description, setDescription] = useState("");
+        const [time, setTime] = useState("");
+        const [priority, setPriority] = useState("medium");
+        const [categories, setCategories] = useState([]); // State is now an array
+        const [newCategoryInput, setNewCategoryInput] = useState(""); // State for the category input field
+        const [showCategorySuggestions, setShowCategorySuggestions] =
+          useState(false); // State to control suggestions visibility
+
+        const [image, setImage] = useState(null);
+        const [taskDate, setTaskDate] = useState("");
+
+        const titleInputRef = useRef(null);
+        const dateInputRef = useRef(null);
+        const flatpickrInstanceRef = useRef(null);
+        const imageInputRef = useRef(null); // Ref for file input
+        const timeInputRef = useRef(null); // Ref for native time input
+        const categoryInputRef = useRef(null); // Ref for category text input
+
+        const imageInputId = `${formId}-image-input`;
+        const dateInputId = `${formId}-date-input`;
+        const categoryInputId = `${formId}-category-input`; // ID for the category input
+        const isEditing = !!initialData;
+
+        // Effect to initialize or reset form data
+        useEffect(() => {
+          if (isEditing) {
+            setTitle(initialData.title || "");
+            setDescription(initialData.description || "");
+            setTime(initialData.time || "");
+            setPriority(initialData.priority || "medium");
+            setCategories(
+              Array.isArray(initialData.categories)
+                ? initialData.categories
+                    .map((c) => c.trim().toLowerCase())
+                    .filter(Boolean)
+                : initialData.category
+                ? [initialData.category]
+                    .map((c) => c.trim().toLowerCase())
+                    .filter(Boolean)
+                : []
+            );
+            setNewCategoryInput("");
+            setImage(initialData.imageUrl || null);
+            setTaskDate(
+              initialData.dateKeyForEdit || initialData.originalDate || ""
+            );
+          } else if (!taskDate) {
+            // Only reset date if it hasn't been set by user
+            setTaskDate(selectedDateForNewTask || "");
+          }
+
+          // Update Flatpickr date
+          if (flatpickrInstanceRef.current) {
+            flatpickrInstanceRef.current.setDate(
+              taskDate || selectedDateForNewTask || new Date(),
+              false
+            );
+          }
+
+          // Focus title input for new tasks
+          if (!isEditing) {
+            setTimeout(() => titleInputRef.current?.focus(), 100);
+          }
+        }, [initialData, isEditing, selectedDateForNewTask]); // Remove taskDate dependency
+
+        // Effect for Flatpickr on date input
+        useEffect(() => {
+          let instance = null;
+          if (dateInputRef.current) {
+            if (flatpickrInstanceRef.current) {
+              flatpickrInstanceRef.current.destroy();
+            }
+            instance = flatpickr(dateInputRef.current, {
+              dateFormat: "Y-m-d",
+              defaultDate: taskDate || selectedDateForNewTask || new Date(),
+              disableMobile: true,
+              allowInput: false,
+              onChange: (selectedDatesArr) => {
+                if (selectedDatesArr[0]) {
+                  const newDate = selectedDatesArr[0]
+                    .toISOString()
+                    .split("T")[0];
+                  setTaskDate(newDate);
+                }
+              },
+            });
+            flatpickrInstanceRef.current = instance;
+            applyThemeVariables(
+              document.documentElement.style.getPropertyValue("--color-primary")
+            );
+          }
+          return () => {
+            if (instance) {
+              instance.destroy();
+              flatpickrInstanceRef.current = null;
+            }
+          };
+        }, []); // Keep this effect running only on mount
+
+        // Effect to sync custom time display with native input value
+        useEffect(() => {
+          const nativeInput = timeInputRef.current;
+          if (!nativeInput) return;
+
+          const syncDisplay = () => {
+            // Update the custom display text based on the native input's value
+            const timeValue = nativeInput.value;
+            const customDisplay = nativeInput.nextElementSibling; // The span/div holding the time text
+            if (customDisplay) {
+              customDisplay.textContent = timeValue
+                ? formatTimeForDisplay(timeValue)
+                : "";
+              if (!timeValue) {
+                customDisplay.setAttribute("data-placeholder", "Select time");
+              } else {
+                customDisplay.removeAttribute("data-placeholder");
+              }
+            }
+            setTime(timeValue); // Keep time state in sync
+          };
+
+          // Initial sync
+          syncDisplay();
+
+          // Listen for changes on the native input (e.g., from picker)
+          nativeInput.addEventListener("change", syncDisplay);
+          nativeInput.addEventListener("input", syncDisplay); // Listen for direct input changes too
+
+          // On focus, potentially trigger the picker
+          // Note: showPicker is not universally supported, but it's the standard way
+          // to programmatically open the native picker.
+          const handleFocus = () => {
+            // Check if showPicker is supported before calling
+            if (nativeInput.showPicker) {
+              nativeInput.showPicker();
+            }
+          };
+          nativeInput.addEventListener("focus", handleFocus);
+
+          // Ensure placeholder is set initially if time is empty
+          const customDisplay = nativeInput.nextElementSibling;
+          if (customDisplay && !nativeInput.value) {
+            customDisplay.setAttribute("data-placeholder", "Select time");
+          }
+
+          return () => {
+            // Cleanup event listeners
+            nativeInput.removeEventListener("change", syncDisplay);
+            nativeInput.removeEventListener("input", syncDisplay);
+            nativeInput.removeEventListener("focus", handleFocus);
+          };
+        }, [formId]); // Re-run if formId changes (should be stable) or on mount/unmount
+
+        // Image Handlers
+        const handleImageChange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+              showAppNotification("Max 5MB image size.", "error");
+              e.target.value = null; // Clear the file input
+              setImage(null); // Ensure state is null if size is too large
+              return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => setImage(reader.result);
+            reader.onerror = () =>
+              showAppNotification("Image read failed.", "error");
+            reader.readAsDataURL(file);
+          } else {
+            setImage(null); // Clear state if file selection is cancelled
+          }
+        };
+        const clearImage = () => {
+          setImage(null);
+          if (imageInputRef.current) {
+            imageInputRef.current.value = null;
+          }
+        };
+
+        // Category Handlers
+        const handleNewCategoryInputChange = (e) => {
+          setNewCategoryInput(e.target.value);
+          // Only show suggestions if there's input and the field is focused
+          if (e.target === document.activeElement) {
+            setShowCategorySuggestions(true);
+          }
+        };
+
+        const addCategory = (categoryToAdd) => {
+          const cleanCategory = categoryToAdd.trim().toLowerCase();
+          if (cleanCategory && !categories.includes(cleanCategory)) {
+            setCategories([...categories, cleanCategory]);
+            setNewCategoryInput(""); // Clear input after adding
+            // setShowCategorySuggestions(false); // Keep suggestions open if input is empty?
+          } else if (cleanCategory && categories.includes(cleanCategory)) {
+            showAppNotification(
+              `Category "${cleanCategory}" already added.`,
+              "warning"
+            );
+            setNewCategoryInput(""); // Clear input even if duplicate
+            // setShowCategorySuggestions(false);
+          }
+          categoryInputRef.current?.focus(); // Keep focus on input
+        };
+
+        const handleCategoryInputKeyDown = (e) => {
+          if (e.key === "Enter" || e.key === ",") {
+            e.preventDefault(); // Prevent form submission or comma in input
+            addCategory(newCategoryInput);
+          } else if (
+            e.key === "Backspace" &&
+            newCategoryInput === "" &&
+            categories.length > 0
+          ) {
+            e.preventDefault(); // Prevent backspace from doing default action
+            // Remove the last category if input is empty
+            setCategories(categories.slice(0, -1));
+          }
+          // For suggestions, prevent default Enter/comma if a suggestion is highlighted (more complex)
+          // For now, just handle adding category
+        };
+
+        const removeCategory = (categoryToRemove) => {
+          setCategories(categories.filter((cat) => cat !== categoryToRemove));
+          categoryInputRef.current?.focus(); // Keep focus on input after removal
+        };
+
+        const handleSuggestionClick = (suggestion) => {
+          addCategory(suggestion);
+          setShowCategorySuggestions(false); // Hide after clicking suggestion
+        };
+
+        // Filter suggestions based on input and not already added categories
+        const filteredSuggestions = useMemo(() => {
+          const inputLower = newCategoryInput.trim().toLowerCase();
+          if (!inputLower) return []; // Don't show suggestions if input is empty
+
+          return existingCategories
+            .filter(
+              (cat) => cat.includes(inputLower) && !categories.includes(cat)
+            )
+            .sort();
+        }, [newCategoryInput, existingCategories, categories]);
+
+        // Modified handleSubmit
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (!title.trim()) {
+            showAppNotification("Title required.", "error");
+            titleInputRef.current?.focus();
+            return;
+          }
+          if (!taskDate) {
+            showAppNotification("Date required.", "error");
+            flatpickrInstanceRef.current?.open();
+            return;
+          }
+
+          // Prepare categories for submission: include current input if any
+          const finalCategories = [...categories];
+          const cleanNewCategory = newCategoryInput.trim().toLowerCase();
+          if (cleanNewCategory && !finalCategories.includes(cleanNewCategory)) {
+            finalCategories.push(cleanNewCategory);
+          }
+
+          const taskDetails = {
+            title: title.trim(),
+            description: description.trim(),
+            time,
+            priority,
+            categories: finalCategories, // Use the potentially updated list
+            imageUrl: image,
+            date: taskDate,
+          };
+
+          if (isEditing && onSave) {
+            onSave({ ...initialData, ...taskDetails });
+          } else if (!isEditing && onAddTask) {
+            onAddTask(taskDetails);
+            // --- RESET FORM FIELDS ---
+            setTitle("");
+            setDescription("");
+            setTime("");
+            setPriority("medium");
+            setCategories([]); // Reset categories state
+            setNewCategoryInput(""); // Reset category input state
+            clearImage(); // Clears image state and file input
+            // Reset date picker to the main selected date (passed as prop)
+            setTaskDate(selectedDateForNewTask || "");
+            if (flatpickrInstanceRef.current) {
+              flatpickrInstanceRef.current.setDate(
+                selectedDateForNewTask || "",
+                false
+              );
+            }
+            // Clear native time input value and update custom display placeholder
+            if (timeInputRef.current) {
+              timeInputRef.current.value = "";
+              const customDisplay = timeInputRef.current.nextElementSibling;
+              if (customDisplay) {
+                customDisplay.textContent = "";
+                customDisplay.setAttribute("data-placeholder", "Select time");
+              }
+            }
+            titleInputRef.current?.focus(); // Focus title for next entry
+            // --- END RESET ---
+          }
+          setShowCategorySuggestions(false); // Hide suggestions on submit
+        };
+
+        const formActionText = isEditing ? "Edit Task" : "Add New Task";
+        const buttonText = isEditing ? "Save Changes" : "Add Task";
+        const canSubmit = title.trim() !== "" && taskDate !== "";
+
+        return (
+          <form
+            onSubmit={handleSubmit}
+            className="mb-6 p-4 bg-[var(--color-input-bg)] bg-opacity-50 rounded-lg shadow"
+            aria-labelledby={`${formId}-form-title`}
+          >
+            <h3
+              id={`${formId}-form-title`}
+              className="text-lg font-medium text-accent mb-4"
+            >
+              {formActionText}
+            </h3>
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <label
+                  htmlFor={`${formId}-title`}
+                  className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                >
+                  Title <span className="text-[var(--color-danger)]">*</span>
+                </label>
+                <input
+                  ref={titleInputRef}
+                  type="text"
+                  id={`${formId}-title`}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter task title"
+                  className="form-input w-full"
+                  required
+                  aria-required="true"
+                />
+              </div>
+              {/* Date */}
+              <div>
+                <label
+                  htmlFor={dateInputId}
+                  className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                >
+                  Date <span className="text-[var(--color-danger)]">*</span>
+                </label>
+                <input
+                  ref={dateInputRef}
+                  type="text"
+                  id={dateInputId}
+                  readOnly
+                  placeholder="Select task date"
+                  className="form-input w-full"
+                  required
+                  aria-required="true"
+                  aria-label="Select task date"
+                />
+              </div>
+              {/* Description */}
+              <div>
+                <label
+                  htmlFor={`${formId}-description`}
+                  className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                >
+                  Description
+                </label>
+                <textarea
+                  id={`${formId}-description`}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter task description (optional)"
+                  rows="3"
+                  className="form-textarea w-full"
+                ></textarea>
+              </div>
+              {/* Time & Priority */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Custom Time Input */}
+                <div>
+                  <label
+                    htmlFor={`${formId}-time`}
+                    className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                  >
+                    Time
+                  </label>
+                  <div className="custom-time-input-container">
+                    <input
+                      ref={timeInputRef}
+                      type="time"
+                      id={`${formId}-time`}
+                      value={time} /* State is synced by useEffect */
+                      onChange={(e) =>
+                        setTime(e.target.value)
+                      } /* Keep state in sync */
+                      className="native-time-input"
+                      tabIndex="-1" /* Make it less accessible directly, but still functional */
+                      aria-hidden="true" /* Hide from screen readers, custom display is the main target */
+                    />
+                    {/* Custom display for the time value */}
+                    <div
+                      className="custom-display"
+                      data-placeholder="Select time" /* Use data-placeholder for styling */
+                      aria-hidden="true" /* This is a visual display, not the primary interactive element for AT */
+                      aria-labelledby={`${formId}-time-label`} /* Link to the label for context */
+                      role="textbox" /* Indicate it's a text input area visually */
+                      tabIndex="0" /* Make the custom display focusable */
+                      // Add event listeners to the custom display to focus the native input
+                      onClick={() => timeInputRef.current?.focus()}
+                      onFocus={() => timeInputRef.current?.focus()}
+                      onKeyDown={(e) => {
+                        // Allow keyboard navigation to trigger the native picker if supported
+                        if (e.key === "Enter" || e.key === " ") {
+                          timeInputRef.current?.focus();
+                          if (timeInputRef.current?.showPicker) {
+                            timeInputRef.current.showPicker();
+                          }
+                        }
+                      }}
+                    >
+                      {time ? formatTimeForDisplay(time) : ""}
+                    </div>
+                    {/* Custom icon */}
+                    <ion-icon
+                      name="time-outline"
+                      class="input-icon"
+                      aria-hidden="true" /* Icon is decorative */
+                    ></ion-icon>
+                  </div>
+                </div>
+                {/* Priority Select */}
+                <div>
+                  <label
+                    htmlFor={`${formId}-priority`}
+                    className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                  >
+                    Priority
+                  </label>
+                  <select
+                    id={`${formId}-priority`}
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="form-select w-full"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+              {/* Category Input with Tags */}
+              <div>
+                <label
+                  htmlFor={categoryInputId}
+                  className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                >
+                  Categories (Type and press Enter or comma)
+                </label>
+                <div className="relative">
+                  <input
+                    ref={categoryInputRef}
+                    type="text"
+                    id={categoryInputId}
+                    value={newCategoryInput}
+                    onChange={handleNewCategoryInputChange}
+                    onKeyDown={handleCategoryInputKeyDown}
+                    onFocus={() => setShowCategorySuggestions(true)}
+                    onBlur={() =>
+                      setTimeout(() => setShowCategorySuggestions(false), 100)
+                    } /* Delay to allow click on suggestion */
+                    placeholder="Add category..."
+                    className="form-input w-full"
+                    aria-label="Add categories to task"
+                    autoComplete="off" /* Disable browser autocomplete */
+                  />
+                  {showCategorySuggestions &&
+                    filteredSuggestions.length > 0 && (
+                      <ul className="absolute z-10 bg-[var(--color-subtle-bg)] border border-[var(--color-border)] rounded-md mt-1 w-full max-h-40 overflow-y-auto shadow-lg">
+                        {filteredSuggestions.map((suggestion) => (
+                          <li
+                            key={suggestion}
+                            onMouseDown={() =>
+                              handleSuggestionClick(suggestion)
+                            } // Use onMouseDown to trigger before onBlur
+                            className="px-3 py-2 text-sm text-[var(--color-text-base)] hover:bg-[var(--color-subtle-bg-hover)] cursor-pointer"
+                          >
+                            {suggestion.charAt(0).toUpperCase() +
+                              suggestion.slice(1)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 items-center">
+                  {" "}
+                  {/* Added items-center for vertical alignment */}
+                  {categories.map((cat) => (
+                    <span
+                      key={cat}
+                      className="category-tag text-xs"
+                      onClick={() => removeCategory(cat)}
+                      aria-label={`Remove category: ${cat}`}
+                      role="button" /* Indicate it's an interactive element */
+                      tabIndex="0" /* Make it focusable */
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          removeCategory(cat);
+                        }
+                      }}
+                    >
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      <ion-icon
+                        name="close-circle-outline"
+                        class="remove-icon ml-1"
+                      ></ion-icon>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {/* Image Upload */}
+              <div>
+                <label
+                  htmlFor={imageInputId}
+                  className="block text-sm font-medium text-[var(--color-text-muted)] mb-1"
+                >
+                  Image (Max 5MB)
+                </label>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  id={imageInputId}
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="form-file-input block w-full"
+                />
+              </div>
+              {/* Image Preview */}
+              {image && (
+                <div className="p-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-subtle-bg)] bg-opacity-30">
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1">
+                    Preview:
+                  </p>
+                  <img
+                    src={image}
+                    alt="Task image"
+                    className="max-h-32 w-auto rounded object-contain mb-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="text-xs text-[var(--color-danger)] hover:underline bg-transparent px-1 py-0.5 rounded"
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              )}
+              {/* Submit Button */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={!canSubmit}
+                  className="btn btn-primary w-full sm:w-auto"
+                >
+                  {buttonText}
+                </button>
+              </div>
+            </div>
+          </form>
+        );
+      }
+
+      function TaskItem({ task, onToggleComplete, onViewDetails, showDate }) {
+        const priorityBorderClass = {
+          high: "border-l-[var(--color-priority-high)]",
+          medium: "border-l-[var(--color-priority-medium)]",
+          low: "border-l-[var(--color-priority-low)]",
+        };
+
+        return (
+          <div
+            className={`p-3 sm:p-4 bg-[var(--color-subtle-bg-hover)] rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-[var(--color-border)] cursor-pointer border-l-4 ${
+              task.completed ? "opacity-60" : "opacity-100"
+            } ${
+              priorityBorderClass[task.priority] ||
+              "border-l-[var(--color-text-muted)]"
+            }`}
+            role="button"
+            tabIndex={0}
+            onClick={onViewDetails}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") onViewDetails();
+            }}
+            aria-label={`View details for task: ${task.title}`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start space-x-3 flex-grow min-w-0">
+                <div
+                  className="mt-1 shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={task.completed}
+                    onChange={onToggleComplete}
+                    className="form-checkbox h-5 w-5 rounded cursor-pointer"
+                    aria-label={`Mark task ${task.title} as ${
+                      task.completed ? "incomplete" : "complete"
+                    }`}
+                  />
+                </div>
+                <div className="flex-grow" onClick={onViewDetails}>
+                  <h3
+                    className={`font-semibold text-base sm:text-lg break-words ${
+                      task.completed
+                        ? "line-through text-[var(--color-text-muted)]"
+                        : "text-[var(--color-text-base)]"
+                    }`}
+                  >
+                    {task.title}
+                  </h3>
+                  {task.description && (
+                    <p
+                      className={`text-sm text-[var(--color-text-muted)] mt-1 truncate ${
+                        task.completed ? "line-through" : ""
+                      }`}
+                    >
+                      {task.description}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs mt-2">
+                    {" "}
+                    {/* Added items-center and gap */}
+                    {task.time && (
+                      <span className="flex items-center text-[var(--color-text-muted)]">
+                        {" "}
+                        {/* Explicitly use muted text color for time icon/text */}
+                        <ion-icon name="time-outline" class="mr-1"></ion-icon>
+                        {formatTimeForDisplay(task.time)}
+                      </span>
+                    )}
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-medium text-white ${
+                        task.priority === "high"
+                          ? "bg-[var(--color-priority-high)]"
+                          : task.priority === "medium"
+                          ? "bg-[var(--color-priority-medium)]"
+                          : task.priority === "low"
+                          ? "bg-[var(--color-priority-low)]"
+                          : "bg-[var(--color-text-muted)]"
+                      }`}
+                    >
+                      {task.priority.charAt(0).toUpperCase() +
+                        task.priority.slice(1)}
+                    </span>
+                    {/* Display multiple categories */}
+                    {Array.isArray(task.categories) &&
+                      task.categories
+                        .map((cat) => cat.trim())
+                        .filter(Boolean)
+                        .map((cat) => (
+                          <span key={cat} className="category-tag text-xs">
+                            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                          </span>
+                        ))}
+                    {showDate && task.originalDate && (
+                      <span className="flex items-center px-2 py-0.5 rounded-full bg-[var(--color-input-bg)] text-[var(--color-text-muted)]">
+                        <ion-icon
+                          name="calendar-outline"
+                          class="mr-1"
+                        ></ion-icon>
+                        {formatShortDate(task.originalDate)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="shrink-0 pt-1 text-[var(--color-text-muted)]">
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function TaskDetailModal({
+        task,
+        onClose,
+        onEdit,
+        onDelete,
+        onToggleComplete,
+        displayDate,
+      }) {
+        if (!task) return null;
+
+        const priorityBgClass = {
+          high: "bg-[var(--color-priority-high)]",
+          medium: "bg-[var(--color-priority-medium)]",
+          low: "bg-[var(--color-priority-low)]",
+        };
+
+        return (
+          <div
+            className="modal-overlay"
+            role="dialog"
+            aria-labelledby="modal-title"
+            aria-modal="true"
+          >
+            <div className="modal-content">
+              <button
+                onClick={onClose}
+                className="modal-close-button"
+                aria-label="Close modal"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+              <h2
+                id="modal-title"
+                className="text-2xl font-bold text-accent mb-1"
+              >
+                {task.title}
+              </h2>
+              {/* Combined info section for horizontal alignment */}
+              <div className="text-xs text-[var(--color-text-muted)] mb-4 flex items-center gap-2 flex-wrap">
+                {displayDate && (
+                  <span className="flex items-center">
+                    <ion-icon name="calendar-outline" class="mr-1"></ion-icon>
+                    {formatDateForDisplay(displayDate)}
+                  </span>
+                )}
+                {task.time && (
+                  <span className="flex items-center">
+                    <ion-icon name="time-outline" class="mr-1"></ion-icon>
+                    {formatTimeForDisplay(task.time)}
+                  </span>
+                )}
+                {/* Display multiple categories in detail view - moved here */}
+                {Array.isArray(task.categories) &&
+                  task.categories
+                    .map((cat) => cat.trim())
+                    .filter(Boolean)
+                    .map((cat) => (
+                      <span key={cat} className="category-tag text-sm">
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      </span>
+                    ))}
+              </div>
+              {task.description && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-[var(--color-text-muted)] mb-1">
+                    Description:
+                  </h4>
+                  <div className="task-description-content text-[var(--color-text-base)]">
+                    {task.description}
+                  </div>
+                </div>
+              )}
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-[var(--color-text-muted)] mb-1">
+                  Priority:
+                </h4>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-semibold text-white ${
+                    priorityBgClass[task.priority] ||
+                    "bg-[var(--color-text-muted)]"
+                  }`}
+                >
+                  {task.priority.charAt(0).toUpperCase() +
+                    task.priority.slice(1)}
+                </span>
+              </div>
+              {task.imageUrl && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-[var(--color-text-muted)] mb-1">
+                    Attached Image:
+                  </h4>
+                  <img
+                    src={task.imageUrl}
+                    alt="Task image"
+                    className="max-h-60 w-auto rounded-md object-contain shadow-lg border border-[var(--color-border)]"
+                  />
+                </div>
+              )}
+              <div className="mt-6 pt-4 border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+                <button
+                  onClick={onToggleComplete}
+                  className={`btn w-full sm:w-auto ${
+                    task.completed ? "btn-warning" : "btn-success"
+                  }`}
+                >
+                  {task.completed ? "Mark as Incomplete" : "Mark as Complete"}
+                </button>
+                <button
+                  onClick={onEdit}
+                  className="btn btn-primary w-full sm:w-auto"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={onDelete}
+                  className="btn btn-danger w-full sm:w-auto"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function EditTaskModal({
+        task,
+        onSave,
+        onClose,
+        showAppNotification,
+        existingCategories = [],
+      }) {
+        const modalFormId = `editTaskForm-${task.id}`;
+        return (
+          <div
+            className="modal-overlay"
+            role="dialog"
+            aria-labelledby={`${modalFormId}-form-title`}
+            aria-modal="true"
+          >
+            <div className="modal-content w-full max-w-2xl">
+              <button
+                onClick={onClose}
+                className="modal-close-button"
+                aria-label="Close edit modal"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+              <TaskForm
+                initialData={task}
+                onSave={onSave}
+                formId={modalFormId}
+                showAppNotification={showAppNotification}
+                existingCategories={existingCategories}
+              />
+            </div>
+          </div>
+        );
+      }
+
+      // --- Render the App ---
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
