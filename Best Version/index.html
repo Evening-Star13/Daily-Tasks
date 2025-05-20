@@ -26,6 +26,10 @@
     <style>
       /* Define CSS Variables for theming. These will be updated by React */
       :root {
+        /* Drag and drop styles */
+        --drag-item-border: 2px dashed var(--color-accent);
+        --drag-over-bg: var(--color-accent-hover);
+
         --color-primary: #64748b; /* Default primary color (slate) */
         --color-bg-start: #0f172a; /* Default dark background start */
         --color-bg-end: #1e293b; /* Default dark background end */
@@ -47,7 +51,7 @@
         --color-success: #22c55e;
         --color-info: #3b82f6;
         --color-priority-high: #ef4444;
-        --color-priority-medium: #f97316;
+        --color-priority-medium: #0307f9;
         --color-priority-low: #22c55e;
         /* Removed themed category colors from variables */
 
@@ -231,13 +235,31 @@
       .flatpickr-day.has-tasks .task-indicator-dot {
         height: 6px;
         width: 6px;
-        background-color: var(--color-warning); /* Use variable */
         border-radius: 50%;
         display: block;
         position: absolute;
         bottom: 3px;
         left: 50%;
         transform: translateX(-50%);
+      }
+
+      /* Priority indicators in calendar */
+      .flatpickr-day.has-tasks.has-high-priority .task-indicator-dot {
+        background-color: var(--color-priority-high);
+      }
+      .flatpickr-day.has-tasks.has-medium-priority .task-indicator-dot {
+        background-color: var(--color-priority-medium);
+      }
+      .flatpickr-day.has-tasks.has-low-priority .task-indicator-dot {
+        background-color: var(--color-priority-low);
+      }
+      .flatpickr-day.has-tasks.has-multiple-priorities .task-indicator-dot {
+        background: linear-gradient(
+          90deg,
+          var(--color-priority-high) 33%,
+          var(--color-priority-medium) 33% 66%,
+          var(--color-priority-low) 66%
+        );
       }
       .flatpickr-day.has-tasks.selected .task-indicator-dot,
       .flatpickr-day.has-tasks.today .task-indicator-dot {
@@ -565,7 +587,46 @@
         margin-left: 0.5rem;
         font-size: 0.75rem; /* text-xs */
         cursor: pointer;
-      } /* Task completion animation */
+      } /* Loading skeleton animation */
+      @keyframes shimmer {
+        0% {
+          background-position: -1000px 0;
+        }
+        100% {
+          background-position: 1000px 0;
+        }
+      }
+
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          var(--color-subtle-bg) 0%,
+          var(--color-subtle-bg-hover) 50%,
+          var(--color-subtle-bg) 100%
+        );
+        background-size: 1000px 100%;
+        animation: shimmer 2s infinite;
+      }
+
+      /* Drag and drop styles */
+      .task-dragging {
+        opacity: 0.5;
+        border: var(--drag-item-border) !important;
+      }
+
+      .task-drag-over {
+        background: var(--drag-over-bg) !important;
+        transform: translateY(2px);
+      }
+
+      /* Touch feedback */
+      @media (hover: none) {
+        .task-item:active {
+          transform: scale(0.98);
+        }
+      }
+
+      /* Task completion animation */
       @keyframes taskComplete {
         0% {
           transform: scale(1);
@@ -1045,6 +1106,16 @@
                   dE.classList.add("has-tasks");
                   const dot = document.createElement("span");
                   dot.className = "task-indicator-dot";
+
+                  // Check priorities of tasks for this date
+                  const priorities = new Set(tasks[k].map((t) => t.priority));
+                  if (priorities.size > 1) {
+                    dE.classList.add("has-multiple-priorities");
+                  } else {
+                    const priority = tasks[k][0].priority;
+                    dE.classList.add(`has-${priority}-priority`);
+                  }
+
                   dE.appendChild(dot);
                 }
               },
@@ -1229,8 +1300,37 @@
             categories: taskDetails.categories || [], // Ensure categories is an array
             imageUrl: taskDetails.imageUrl,
             completed: false,
+            reminder: taskDetails.reminder, // Add reminder support
             // date is not stored in the task object itself, but as the key in the tasks state
           };
+
+          // Schedule notification if reminder is set
+          if (taskDetails.reminder && taskDetails.time && targetDate) {
+            const reminderTime = new Date(targetDate + "T" + taskDetails.time);
+            const reminderOffset = taskDetails.reminder * 60 * 1000; // Convert minutes to milliseconds
+            const notificationTime = new Date(
+              reminderTime.getTime() - reminderOffset
+            );
+
+            // Check if notification time is in the future
+            if (notificationTime > new Date()) {
+              if ("Notification" in window) {
+                Notification.requestPermission().then(function (permission) {
+                  if (permission === "granted") {
+                    const timeoutId = setTimeout(() => {
+                      new Notification("Task Reminder", {
+                        body: `Task "${taskDetails.title}" is due in ${taskDetails.reminder} minutes`,
+                        icon: "/icons/icon-192x192.png",
+                      });
+                    }, notificationTime.getTime() - Date.now());
+
+                    // Store timeout ID for cleanup
+                    newTask.reminderTimeoutId = timeoutId;
+                  }
+                });
+              }
+            }
+          }
           setTasks((prevTasks) => ({
             ...prevTasks,
             [targetDate]: [...(prevTasks[targetDate] || []), newTask],
@@ -2435,7 +2535,7 @@
 
         return (
           <div
-            className={`p-3 sm:p-4 bg-[var(--color-subtle-bg-hover)] rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-[var(--color-border)] cursor-pointer border-l-4 ${
+            className={`p-3 sm:p-4 bg-[var(--color-subtle-bg-hover)] rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-[var(--color-border)] cursor-pointer border-l-4 task-item touch-manipulation ${
               task.completed ? "opacity-60" : "opacity-100"
             } ${
               priorityBorderClass[task.priority] ||
