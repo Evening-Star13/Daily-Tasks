@@ -2688,25 +2688,30 @@
               <div className="mt-6 pt-4 border-t border-[var(--color-border)] flex flex-col gap-4">
                 {/* Share section */}{" "}
                 <div className="flex flex-col sm:flex-row gap-2">
+                  {" "}
                   <button
                     onClick={async () => {
+                      // Format text details with better spacing and organization
                       const shareText = [
-                        `Task: ${task.title}`,
+                        `📝 Task: ${task.title}`,
                         task.description
-                          ? `Description: ${task.description}`
+                          ? `\n📋 Description: ${task.description}`
                           : null,
-                        task.time
-                          ? `Time: ${formatTimeForDisplay(task.time)}`
+                        task.time && displayDate
+                          ? `\n📅 ${formatDateForDisplay(
+                              displayDate
+                            )} at ${formatTimeForDisplay(task.time)}`
+                          : displayDate
+                          ? `\n📅 ${formatDateForDisplay(displayDate)}`
+                          : task.time
+                          ? `\n⏰ ${formatTimeForDisplay(task.time)}`
                           : null,
-                        displayDate
-                          ? `Date: ${formatDateForDisplay(displayDate)}`
-                          : null,
-                        `Priority: ${
+                        `\n⚡ Priority: ${
                           task.priority.charAt(0).toUpperCase() +
                           task.priority.slice(1)
                         }`,
                         task.categories?.length
-                          ? `Categories: ${task.categories.join(", ")}`
+                          ? `\n🏷️ Categories: ${task.categories.join(", ")}`
                           : null,
                       ]
                         .filter(Boolean)
