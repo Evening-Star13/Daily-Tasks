@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Daily Planner - Dynamic Theme</title>
+    <title>Daily Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -893,6 +893,7 @@
           { name: "Slate", color: "#475569" }, // Professional grey
           { name: "Blue", color: "#2563eb" }, // Vibrant blue
           { name: "Black", color: "#111111" }, // Clean black theme
+          { name: "Rich Purple", color: "#6525be" }, // Rich purple theme
         ];
         return (
           <div
@@ -1462,9 +1463,9 @@
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search tasks"
+                        placeholder="Search Tasks"
                         className="form-input w-full pr-8"
-                        aria-label="Search tasks"
+                        aria-label="Search Tasks"
                         data-tooltip="Press '/' to focus search"
                       />
                       <ion-icon
