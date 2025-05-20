@@ -565,23 +565,6 @@
         margin-left: 0.5rem;
         font-size: 0.75rem; /* text-xs */
         cursor: pointer;
-      }
-
-      /* Light/Dark mode variables */
-      :root {
-        --color-bg-light: #ffffff;
-        --color-text-light: #1f2937;
-        --color-subtle-bg-light: #f3f4f6;
-        --color-subtle-bg-hover-light: #f9fafb;
-        --color-border-light: #e5e7eb;
-        --color-text-muted-light: #6b7280;
-
-        --color-bg-dark: #1f2937;
-        --color-text-dark: #f9fafb;
-        --color-subtle-bg-dark: #374151;
-        --color-subtle-bg-hover-dark: #4b5563;
-        --color-border-dark: #4b5563;
-        --color-text-muted-dark: #9ca3af;
       } /* Task completion animation */
       @keyframes taskComplete {
         0% {
@@ -738,13 +721,15 @@
           // Very light
           bgStart = "#ffffff";
           bgEnd = "#f8f9fa";
-          accent = color.clone().darken(15).saturate(15).toHexString();
-          accentHover = tc(accent).darken(8).toHexString();
+          accent = "#000000"; // Pure black accent for white theme
+          accentHover = "#000000"; // Keep black for hover states
           subtleBg = "#f1f3f5";
           subtleBgHover = "#e9ecef";
           inputBg = "#ffffff";
-          inputBorder = "#ced4da";
-          border = "#dee2e6";
+          inputBorder = "#000000"; // Black border
+          border = "#000000"; // Black border
+          textBase = "#000000"; // Force black text for white theme
+          textMuted = "#000000"; // Force black text for white theme
           timeInputColorScheme = "dark"; // Suggest dark controls for light theme
         } else {
           // Standard calculation
@@ -775,11 +760,10 @@
           border = inputBorder;
           timeInputColorScheme = isDark ? "light" : "dark"; // Match scheme to theme brightness
         }
-
         const textBase =
-          isDark || color.getBrightness() < 128 ? "#e2e8f0" : "#1f2937";
+          isDark || color.getBrightness() < 128 ? "#e2e8f0" : "#000000"; // Pure black text for white theme
         const textMuted =
-          isDark || color.getBrightness() < 128 ? "#94a3b8" : "#6b7280";
+          isDark || color.getBrightness() < 128 ? "#94a3b8" : "#000000"; // Force black text in white theme
         const scrollbarThumb = textMuted;
         const scrollbarThumbHover = tc(scrollbarThumb).isDark()
           ? tc(scrollbarThumb).lighten(10).toRgbString()
@@ -894,12 +878,12 @@
         }
         return <React.Fragment>{children}</React.Fragment>;
       }
-
       function SettingsModal({ onClose, onThemeChange, currentPrimaryColor }) {
         const themeOptions = [
-          { name: "Slate", color: "#475569" }, // Adjusted to a richer slate color
-          { name: "Blue", color: "#2563eb" }, // Adjusted to a more vibrant blue
-          { name: "Black", color: "#111111" },
+          { name: "Balanced White", color: "#f5f5f5" }, // Soft white theme with darker text
+          { name: "Slate", color: "#475569" }, // Professional grey
+          { name: "Blue", color: "#2563eb" }, // Vibrant blue
+          { name: "Black", color: "#111111" }, // Clean black theme
         ];
         return (
           <div
@@ -909,38 +893,33 @@
             aria-modal="true"
           >
             <div className="modal-content">
-              <button
-                onClick={onClose}
-                className="modal-close-button"
-                aria-label="Close settings modal"
-              >
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
               <h2
                 id="settings-modal-title"
-                className="text-2xl font-bold text-accent mb-4"
+                className="text-xl font-semibold mb-4"
               >
                 Settings
               </h2>
-              <div className="mb-4">
-                <h4 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2">
-                  Select Theme Color:
-                </h4>
-                <div className="flex flex-wrap gap-4">
-                  {themeOptions.map((theme) => (
+              <button
+                onClick={onClose}
+                className="modal-close-button"
+                aria-label="Close settings"
+              >
+                ×
+              </button>
+              <div>
+                <h3 className="text-lg font-medium mb-2">Theme Color</h3>
+                <div className="flex gap-4 flex-wrap">
+                  {themeOptions.map((option) => (
                     <button
-                      key={theme.name}
-                      onClick={() => onThemeChange(theme.color)}
+                      key={option.name}
+                      onClick={() => onThemeChange(option.color)}
                       className={`color-option ${
-                        tc(currentPrimaryColor).toHexString() ===
-                        tc(theme.color).toHexString()
-                          ? "selected"
-                          : ""
+                        currentPrimaryColor === option.color ? "selected" : ""
                       }`}
-                      style={{ backgroundColor: theme.color }}
-                      aria-label={`Select ${theme.name} theme`}
-                      title={theme.name}
-                    ></button>
+                      style={{ backgroundColor: option.color }}
+                      aria-label={`Select ${option.name} theme`}
+                      title={option.name}
+                    />
                   ))}
                 </div>
               </div>
@@ -993,15 +972,11 @@
           type: "",
           key: 0,
         });
-        const [isDarkMode, setIsDarkMode] = useState(() => {
-          return localStorage.getItem("darkMode") === "true";
-        });
         const dateInputRef = useRef(null);
         const flatpickrInstanceRef = useRef(null);
         const searchInputRef = useRef(null);
-        const isInitialMount = useRef(true);
+        const isInitialMount = useRef(true); // --- Effects ---
 
-        // --- Effects ---
         useEffect(() => {
           applyThemeVariables(primaryThemeColor);
           localStorage.setItem("dailyPlannerThemeColor", primaryThemeColor);
@@ -1393,15 +1368,10 @@
           setEditingTask(null);
           showAppNotification("Task updated.", "success");
         };
-
         const handleThemeChange = (newColor) => {
           setPrimaryThemeColor(newColor);
           setShowSettings(false);
           showAppNotification("Theme updated!", "success");
-        };
-
-        const toggleTheme = () => {
-          setIsDarkMode((prev) => !prev);
         };
 
         const handleExportTasks = () => {
@@ -1524,29 +1494,6 @@
                           aria-label="Import tasks"
                         />
                       </div>
-                      <button
-                        onClick={toggleTheme}
-                        className="btn btn-secondary flex items-center gap-2"
-                        aria-label={
-                          isDarkMode
-                            ? "Switch to light mode"
-                            : "Switch to dark mode"
-                        }
-                        title={
-                          isDarkMode
-                            ? "Switch to light mode"
-                            : "Switch to dark mode"
-                        }
-                        data-tooltip={
-                          isDarkMode
-                            ? "Switch to light mode"
-                            : "Switch to dark mode"
-                        }
-                      >
-                        <ion-icon
-                          name={isDarkMode ? "sunny-outline" : "moon-outline"}
-                        ></ion-icon>
-                      </button>
                       <button
                         onClick={() => setShowSettings(true)}
                         className="btn btn-secondary flex items-center gap-2"
@@ -2734,7 +2681,7 @@
                               mimeType.split("/")[1]
                             }`;
 
-                            // Convert base64 to blob
+                            // Create blob and file from image data
                             const binaryString = atob(base64Data);
                             const bytes = new Uint8Array(binaryString.length);
                             for (let i = 0; i < binaryString.length; i++) {
@@ -2745,22 +2692,36 @@
                               type: mimeType,
                             });
 
-                            // Check if we can share with files
-                            const shareData = {
-                              title: "Shared Task",
-                              text: shareText,
+                            // Try sharing file only first
+                            const fileOnlyShare = {
                               files: [file],
-                            };
-
-                            if (navigator.canShare(shareData)) {
-                              await navigator.share(shareData);
+                            }; // If we can share just the file
+                            if (navigator.canShare(fileOnlyShare)) {
+                              // Share text first
+                              await navigator.share({
+                                title: "Task Details",
+                                text: shareText,
+                              });
+                              // Then share the image
+                              await navigator.share(fileOnlyShare);
                               showAppNotification(
-                                "Task shared successfully with image!",
+                                "Task details and image shared!",
                                 "success"
                               );
                               return;
                             }
-                            // If we can't share with files, fall through to regular share
+
+                            // If we can't share files at all, just share text with image mention
+                            const textOnlyShare = {
+                              title: "Task Details",
+                              text: `${shareText}\n\n[Task includes an image attachment]`,
+                            };
+                            await navigator.share(textOnlyShare);
+                            showAppNotification(
+                              "Task details shared (image not supported)!",
+                              "success"
+                            );
+                            return;
                           } catch (imageError) {
                             console.warn(
                               "Failed to share with image:",
@@ -2770,12 +2731,13 @@
                           }
                         }
 
-                        // Try regular Web Share API
+                        // Try regular Web Share API without image
                         if (navigator.share) {
-                          await navigator.share({
-                            title: "Shared Task",
+                          const shareDataBasic = {
+                            title: "Task Details",
                             text: shareText,
-                          });
+                          };
+                          await navigator.share(shareDataBasic);
                           showAppNotification(
                             task.imageUrl
                               ? "Task shared successfully (image not supported)!"
