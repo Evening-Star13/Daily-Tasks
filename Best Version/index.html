@@ -993,6 +993,9 @@
           type: "",
           key: 0,
         });
+        const [isDarkMode, setIsDarkMode] = useState(() => {
+          return localStorage.getItem("darkMode") === "true";
+        });
         const dateInputRef = useRef(null);
         const flatpickrInstanceRef = useRef(null);
         const searchInputRef = useRef(null);
@@ -1397,6 +1400,10 @@
           showAppNotification("Theme updated!", "success");
         };
 
+        const toggleTheme = () => {
+          setIsDarkMode((prev) => !prev);
+        };
+
         const handleExportTasks = () => {
           const exportData = {
             tasks,
@@ -1456,14 +1463,6 @@
         return (
           <ErrorBoundary>
             <div className="container mx-auto p-4 md:p-8 max-w-5xl min-h-screen">
-              <Notification
-                key={notification.key}
-                message={notification.message}
-                type={notification.type}
-                onClose={() =>
-                  setNotification({ message: "", type: "", key: 0 })
-                }
-              />
               <header className="mb-6 md:mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
@@ -1525,6 +1524,29 @@
                           aria-label="Import tasks"
                         />
                       </div>
+                      <button
+                        onClick={toggleTheme}
+                        className="btn btn-secondary flex items-center gap-2"
+                        aria-label={
+                          isDarkMode
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                        }
+                        title={
+                          isDarkMode
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                        }
+                        data-tooltip={
+                          isDarkMode
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                        }
+                      >
+                        <ion-icon
+                          name={isDarkMode ? "sunny-outline" : "moon-outline"}
+                        ></ion-icon>
+                      </button>
                       <button
                         onClick={() => setShowSettings(true)}
                         className="btn btn-secondary flex items-center gap-2"
@@ -1723,6 +1745,7 @@
                     )
                   }
                   displayDate={viewingTaskDetails.displayDate}
+                  showAppNotification={showAppNotification}
                 />
               )}
               {editingTask && (
@@ -2072,18 +2095,126 @@
         const buttonText = isEditing ? "Save Changes" : "Add Task";
         const canSubmit = title.trim() !== "" && taskDate !== "";
 
+        // Add task templates functionality
+        const [templates, setTemplates] = useState(() => {
+          const saved = localStorage.getItem("taskTemplates");
+          return saved ? JSON.parse(saved) : [];
+        });
+
+        const [showTemplatesMenu, setShowTemplatesMenu] = useState(false);
+
+        // Save current task as template
+        const saveAsTemplate = () => {
+          const templateName = prompt("Enter a name for this template:");
+          if (templateName) {
+            const newTemplate = {
+              name: templateName,
+              title,
+              description,
+              time,
+              priority,
+              categories: [...categories],
+            };
+            const updatedTemplates = [...templates, newTemplate];
+            setTemplates(updatedTemplates);
+            localStorage.setItem(
+              "taskTemplates",
+              JSON.stringify(updatedTemplates)
+            );
+            showAppNotification("Template saved successfully!", "success");
+          }
+        };
+
+        // Load template
+        const loadTemplate = (template) => {
+          setTitle(template.title || "");
+          setDescription(template.description || "");
+          setTime(template.time || "");
+          setPriority(template.priority || "medium");
+          setCategories(template.categories || []);
+          setShowTemplatesMenu(false);
+          showAppNotification("Template loaded!", "success");
+        };
+
+        // Delete template
+        const deleteTemplate = (templateIndex) => {
+          if (confirm("Delete this template?")) {
+            const updatedTemplates = templates.filter(
+              (_, index) => index !== templateIndex
+            );
+            setTemplates(updatedTemplates);
+            localStorage.setItem(
+              "taskTemplates",
+              JSON.stringify(updatedTemplates)
+            );
+            showAppNotification("Template deleted.", "info");
+          }
+        };
+
         return (
           <form
             onSubmit={handleSubmit}
             className="mb-6 p-4 bg-[var(--color-input-bg)] bg-opacity-50 rounded-lg shadow"
             aria-labelledby={`${formId}-form-title`}
           >
-            <h3
-              id={`${formId}-form-title`}
-              className="text-lg font-medium text-accent mb-4"
-            >
-              {formActionText}
-            </h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3
+                id={`${formId}-form-title`}
+                className="text-lg font-medium text-accent"
+              >
+                {formActionText}
+              </h3>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowTemplatesMenu(!showTemplatesMenu)}
+                  className="btn btn-secondary flex items-center gap-2"
+                >
+                  <ion-icon name="copy-outline"></ion-icon>
+                  Templates
+                </button>
+                {showTemplatesMenu && (
+                  <div className="absolute right-0 mt-2 w-56 bg-[var(--color-subtle-bg)] border border-[var(--color-border)] rounded-md shadow-lg z-50">
+                    <div className="p-2">
+                      <button
+                        type="button"
+                        onClick={saveAsTemplate}
+                        className="w-full text-left px-4 py-2 hover:bg-[var(--color-subtle-bg-hover)] rounded"
+                      >
+                        Save as Template
+                      </button>
+                      {templates.length > 0 && (
+                        <div className="border-t border-[var(--color-border)] my-2"></div>
+                      )}
+                      {templates.map((template, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between px-4 py-2 hover:bg-[var(--color-subtle-bg-hover)] rounded"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => loadTemplate(template)}
+                            className="text-left flex-grow"
+                          >
+                            {template.name}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteTemplate(index);
+                            }}
+                            className="text-[var(--color-danger)] hover:text-[var(--color-danger)] ml-2"
+                          >
+                            <ion-icon name="trash-outline"></ion-icon>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="space-y-4">
               {/* Title */}
               <div>
@@ -2455,7 +2586,6 @@
           </div>
         );
       }
-
       function TaskDetailModal({
         task,
         onClose,
@@ -2463,6 +2593,7 @@
         onDelete,
         onToggleComplete,
         displayDate,
+        showAppNotification,
       }) {
         if (!task) return null;
 
@@ -2553,28 +2684,154 @@
                     className="max-h-60 w-auto rounded-md object-contain shadow-lg border border-[var(--color-border)]"
                   />
                 </div>
-              )}
-              <div className="mt-6 pt-4 border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
-                <button
-                  onClick={onToggleComplete}
-                  className={`btn w-full sm:w-auto ${
-                    task.completed ? "btn-warning" : "btn-success"
-                  }`}
-                >
-                  {task.completed ? "Mark as Incomplete" : "Mark as Complete"}
-                </button>
-                <button
-                  onClick={onEdit}
-                  className="btn btn-primary w-full sm:w-auto"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={onDelete}
-                  className="btn btn-danger w-full sm:w-auto"
-                >
-                  Delete
-                </button>
+              )}{" "}
+              <div className="mt-6 pt-4 border-t border-[var(--color-border)] flex flex-col gap-4">
+                {/* Share section */}{" "}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={async () => {
+                      const shareText = [
+                        `Task: ${task.title}`,
+                        task.description
+                          ? `Description: ${task.description}`
+                          : null,
+                        task.time
+                          ? `Time: ${formatTimeForDisplay(task.time)}`
+                          : null,
+                        displayDate
+                          ? `Date: ${formatDateForDisplay(displayDate)}`
+                          : null,
+                        `Priority: ${
+                          task.priority.charAt(0).toUpperCase() +
+                          task.priority.slice(1)
+                        }`,
+                        task.categories?.length
+                          ? `Categories: ${task.categories.join(", ")}`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join("\n");
+                      try {
+                        // Try Web Share API with image if available
+                        if (
+                          task.imageUrl &&
+                          navigator.share &&
+                          navigator.canShare
+                        ) {
+                          try {
+                            // Extract MIME type and base64 data from data URL
+                            const [header, base64Data] =
+                              task.imageUrl.split(",");
+                            const mimeType =
+                              header.match(/data:(.*);base64/)?.[1] ||
+                              "image/png";
+                            const fileName = `task-image.${
+                              mimeType.split("/")[1]
+                            }`;
+
+                            // Convert base64 to blob
+                            const binaryString = atob(base64Data);
+                            const bytes = new Uint8Array(binaryString.length);
+                            for (let i = 0; i < binaryString.length; i++) {
+                              bytes[i] = binaryString.charCodeAt(i);
+                            }
+                            const blob = new Blob([bytes], { type: mimeType });
+                            const file = new File([blob], fileName, {
+                              type: mimeType,
+                            });
+
+                            // Check if we can share with files
+                            const shareData = {
+                              title: "Shared Task",
+                              text: shareText,
+                              files: [file],
+                            };
+
+                            if (navigator.canShare(shareData)) {
+                              await navigator.share(shareData);
+                              showAppNotification(
+                                "Task shared successfully with image!",
+                                "success"
+                              );
+                              return;
+                            }
+                            // If we can't share with files, fall through to regular share
+                          } catch (imageError) {
+                            console.warn(
+                              "Failed to share with image:",
+                              imageError
+                            );
+                            // Fall through to regular share
+                          }
+                        }
+
+                        // Try regular Web Share API
+                        if (navigator.share) {
+                          await navigator.share({
+                            title: "Shared Task",
+                            text: shareText,
+                          });
+                          showAppNotification(
+                            task.imageUrl
+                              ? "Task shared successfully (image not supported)!"
+                              : "Task shared successfully!",
+                            "success"
+                          );
+                          return;
+                        }
+
+                        // Fall back to clipboard
+                        const textWithImage = task.imageUrl
+                          ? `${shareText}\n\n[Task includes an image attachment]`
+                          : shareText;
+                        await navigator.clipboard.writeText(textWithImage);
+                        showAppNotification(
+                          "Task details copied to clipboard!",
+                          "success"
+                        );
+                      } catch (err) {
+                        console.error("Error sharing task:", err);
+                        let errorMessage = "Failed to share task";
+                        if (err.name === "NotAllowedError") {
+                          errorMessage = "Sharing was denied by the user";
+                        } else if (err.name === "DataError") {
+                          errorMessage =
+                            "The data couldn't be shared (too large or invalid)";
+                        }
+                        showAppNotification(errorMessage, "error");
+                      }
+                    }}
+                    className="btn btn-secondary w-full sm:w-auto flex items-center justify-center gap-2"
+                    title="Share task details"
+                    aria-label="Share task details"
+                  >
+                    <ion-icon name="share-social-outline"></ion-icon>
+                    Share Task
+                  </button>
+                </div>
+                {/* Action buttons */}
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+                  <button
+                    onClick={onToggleComplete}
+                    className={`btn w-full sm:w-auto ${
+                      task.completed ? "btn-warning" : "btn-success"
+                    }`}
+                  >
+                    {task.completed ? "Mark as Incomplete" : "Mark as Complete"}
+                  </button>
+                  <button
+                    onClick={onEdit}
+                    className="btn btn-primary w-full sm:w-auto"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={onDelete}
+                    className="btn btn-danger w-full sm:w-auto"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           </div>
